@@ -7,10 +7,11 @@
 - link:
     # ~/.tmux.conf: tmux.conf
     # ~/.vim: vim
-    ~/.vimrc: vim/vimrc
+    ~/.zshrc: target/zshrc
+    ~/.vimrc: target/vim/vimrc
 
-# - create:
-#     - ~/.vim/undo-history
+- create:
+    - ~/.shell_keys
 
 - shell:
   - [git submodule update --init --recursive, Installing submodules]
