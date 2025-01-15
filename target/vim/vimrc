@@ -1,0 +1,17 @@
+syntax on
+
+set number
+
+colorscheme toast
+
+inoremap kj <Esc>
+
+" use with iterm2 scroll integration
+" defaults write com.googlecode.iterm2 AlternateMouseScroll -bool true
+" also reverse them for natural scrolling
+noremap <ScrollWheelDown> k
+noremap <ScrollWheelUp> j
+
+set tabstop=4     " tabs are 4 spaces wide
+set shiftwidth=0  " '<' and '>' shifts de/indent by tabstop distance
+set expandtab     " convert tabs to spaces
