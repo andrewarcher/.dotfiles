@@ -1,4 +1,15 @@
+# appearance
 theme = midnight-in-mojave
+background-opacity = 0.7
+background-blur-radius = 20
+
+# new windows start at ~
+window-inherit-working-directory = false
+
+bold-is-bright = true
+
+shell-integration-features = no-cursor
+cursor-style = block
 
 # macos-icon = official
 macos-icon = custom-style
