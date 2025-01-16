@@ -93,7 +93,7 @@ fi
 ## pnpm
 if command -v pnpm 2>&1 >/dev/null
 then
-    export PNPM_HOME="/Users/andrewarcher/Library/pnpm"
+    export PNPM_HOME="$HOME/Library/pnpm"
     export PATH="$PNPM_HOME:$PATH"
 
     # TURBOREPO - subgraphs stop caching at turborepo; rely on make caching instead
@@ -128,11 +128,17 @@ show_colors () {
 alias git-web="git config --get remote.origin.url | head -n 1 | sed -E 's_^git@(.*):_https://\1/_; s/\.git$//' | xargs open"
 
 ### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
-export PATH="/Users/andrewarcher/.rd/bin:$PATH"
+export PATH="$HOME/.rd/bin:$PATH"
 ### MANAGED BY RANCHER DESKTOP END (DO NOT EDIT)
 
 # mise
 if command -v mise 2>&1 >/dev/null
 then
     eval "$(mise activate zsh)"
+fi
+
+# go
+if command -v go 2>&1 >/dev/null
+then
+    export GOPATH=$HOME/code/go
 fi
