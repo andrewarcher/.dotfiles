@@ -6,9 +6,9 @@
 
 - link:
     # ~/.tmux.conf: tmux.conf
-    # ~/.vim: vim
     ~/.zshrc: target/zshrc
-    ~/.vimrc: target/vim/vimrc
+    ~/.vim: target/vim
+    ~/.config/ghostty: target/ghostty
 
 - create:
     - ~/.shell_keys
