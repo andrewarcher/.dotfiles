@@ -9,6 +9,7 @@
     ~/.zshrc: target/zshrc
     ~/.vim: target/vim
     ~/.config/ghostty: target/ghostty
+    ~/.config/lsd: target/lsd
 
 - create:
     - ~/.shell_keys
