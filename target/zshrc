@@ -1,4 +1,4 @@
-source ~/.shell_keys
+source ~/.config/env_keys
 
 # add allowing hooks into zsh calls
 autoload -Uz add-zsh-hook
@@ -59,6 +59,8 @@ add-zsh-hook precmd prompt_precmd
 RPS1='%F{cyan}${prompt_elapsed_time}%F{none}'
 
 ## zsh history
+# history file
+export HISTFILE=~/.cache/zsh_history
 # number of history lines to keep in memory
 export HISTSIZE=100000000
 # number of history lines to keep in history file
@@ -142,3 +144,5 @@ if command -v go 2>&1 >/dev/null
 then
     export GOPATH=$HOME/code/go
 fi
+
+export LESSHISTFILE=.cache/less/.lesshst
