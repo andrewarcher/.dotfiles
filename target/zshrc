@@ -59,19 +59,17 @@ add-zsh-hook precmd prompt_precmd
 RPS1='%F{cyan}${prompt_elapsed_time}%F{none}'
 
 ## zsh history
-# history file
-export HISTFILE=~/.cache/zsh_history
-# number of history lines to keep in memory
-export HISTSIZE=100000000
-# number of history lines to keep in history file
-export SAVEHIST=$HISTSIZE
-# do not share history between zsh sessions
-unsetopt share_history  
-setopt hist_ignore_all_dups
-# commands with a leading space won't be saved into history
-setopt hist_ignore_space  
+export HISTFILE=~/.cache/zsh_history    # history file
+export HISTSIZE=1000000                 # number of history lines to keep in memory
+export SAVEHIST=2000000                 # number of history lines to keep in history file
+setopt inc_append_history               # add commands to history immediately when entered
+setopt hist_expire_dups_first           # expire duplicate events when trimming history
+setopt hist_ignore_dups                 # do not record an event that matches the immediately preceding event
+setopt hist_ignore_all_dups             # do not record an event that is already in history
+setopt hist_ignore_space                # do not record events starting with a space
+# unsetopt share_history                  # do not share history between zsh sessions
 
-## Basic Hisotry Search
+## Basic hisotry search with arrow keys
 bindkey '[A' history-search-backward
 bindkey '[B' history-search-forward
 
@@ -85,7 +83,6 @@ fi
 ## AWS
 if command -v aws 2>&1 >/dev/null
 then
-    export AWS_PROFILE=dev
     ## AWS autocomplete
     autoload bashcompinit && bashcompinit
     autoload -Uz compinit && compinit
