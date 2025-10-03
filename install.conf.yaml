@@ -11,6 +11,7 @@
     ~/.config/git: target/git
     ~/.config/ghostty: target/ghostty
     ~/.config/lsd: target/lsd
+    ~/.config/finicky.ts: target/finicky.ts
 
 - create:
     - ~/.cache/less
