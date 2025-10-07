@@ -124,7 +124,6 @@ show_colors () {
 }
 
 # git shortcut - open webpage of current repo
-alias git-web="git config --get remote.origin.url | head -n 1 | sed -E 's_^git@(.*):_https://\1/_; s/\.git$//' | xargs open"
 
 ### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
 export PATH="$HOME/.rd/bin:$PATH"

@@ -1,2 +1,7 @@
 [pull]
 	rebase = true
+[pretty]
+    oneLineDate = %C(blue)%h %C(green)%<(8,trunc)%aN %C(yellow)%ah%C(reset) %s%C(auto)%d
+[alias]
+    l = log --format=oneLineDate
+    web = ! "f () { git config --get remote.origin.url | head -n 1 | sed -E 's_^git@(.*):_https://\\1/_; s/.git$//' | xargs open ; }; f"
