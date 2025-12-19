@@ -60,11 +60,14 @@ export default {
       browser: "us.zoom.xos",
     },
     {
-      match: /https:\/\/www\.figma\.com\/(design|file)\/*/,
+      match: (url: URL) =>
+        url.hostname === "www.figma.com" &&
+        (url.pathname.startsWith("/design/") ||
+          url.pathname.startsWith("/file/")),
       browser: "Figma",
     },
     {
-      match: finicky.matchHostnames("open.spotify.com"),
+      match: (url: URL) => url.hostname === "open.spotify.com",
       browser: "Spotify",
     },
   ],
