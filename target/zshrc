@@ -76,7 +76,7 @@ bindkey '[B' history-search-forward
 ## homebrew
 if command -v brew 2>&1 >/dev/null
 then
-    export PATH="${HOMEBREW_PREFIX}/opt/openssl/bin:$PATH"
+    export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
     export FPATH="$(brew --prefix)/share/zsh/site-functions/zsh_loaded:${FPATH}"
 fi
 
@@ -126,7 +126,7 @@ show_colors () {
 # git shortcut - open webpage of current repo
 
 ### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
-export PATH="$HOME/.rd/bin:$PATH"
+export PATH="/Users/andrewarcher/.rd/bin:$PATH"
 ### MANAGED BY RANCHER DESKTOP END (DO NOT EDIT)
 
 # mise

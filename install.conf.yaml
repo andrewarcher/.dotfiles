@@ -17,7 +17,6 @@
     - ~/.cache/less
 
 - shell:
-    - touch ~/.config/env_keys
-
-- shell:
   - [git submodule update --init --recursive, Installing submodules]
+  - [touch ~/.config/env_keys, Creating ~/.config/env_keys]
+  - [/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)", Installing homebrew]

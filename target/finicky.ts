@@ -10,8 +10,8 @@ const rwRemoveTracking = {
       .filter(
         ([key]) =>
           !removeKeysStartingWith.some((startingWith) =>
-            key.startsWith(startingWith)
-          )
+            key.startsWith(startingWith),
+          ),
       )
       .filter(([key]) => !removeKeys.some((removeKey) => key === removeKey));
 
@@ -24,6 +24,8 @@ const rwRemoveTracking = {
 
 const isZoom = (url: URL) =>
   url.hostname.endsWith("zoom.us") && url.pathname.startsWith("/j");
+
+const isSlack = (url: URL) => url.hostname.endsWith("slack.com");
 
 const rwGoogleZoomLinks = {
   match: (url: URL) => {
@@ -69,6 +71,10 @@ export default {
     {
       match: (url: URL) => url.hostname === "open.spotify.com",
       browser: "Spotify",
+    },
+    {
+      match: isSlack,
+      browser: "Slack",
     },
   ],
   rewrite: [rwRemoveTracking, rwGoogleZoomLinks],
