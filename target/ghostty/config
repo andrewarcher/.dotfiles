@@ -19,7 +19,10 @@ macos-icon-ghost-color = #059e2a
 macos-icon-screen-color = #00177a
 
 # transparency is glitchy in tabs :(
-# macos-titlebar-style = tabs
+macos-titlebar-style = tabs
 
 link-url = true
 copy-on-select = clipboard
+
+# don't confirm when closing ghostty
+confirm-close-surface = false
