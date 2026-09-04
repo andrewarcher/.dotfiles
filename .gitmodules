@@ -6,11 +6,6 @@
 	path = target/vim/pack/plugins/start/vim-go
 	url = https://github.com/fatih/vim-go.git
 	shallow = true
-[submodule "target/vim/pack/coc/start/coc.nvim"]
-	path = target/vim/pack/coc/start/coc.nvim
-	url = https://github.com/neoclide/coc.nvim.git
-	branch = release
-	shallow = true
 [submodule "target/zsh/fzf-tab"]
 	path = target/zsh/fzf-tab
 	url = https://github.com/Aloxaf/fzf-tab.git
