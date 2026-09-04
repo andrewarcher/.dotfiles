@@ -2,12 +2,14 @@
     link:
       relink: true
 
-- clean: ['~']
+- clean: ['~', '~/.config']
 
 - link:
     # ~/.tmux.conf: tmux.conf
     ~/.zshrc: target/zshrc
+    ~/.inputrc: target/inputrc
     ~/.config/vim: target/vim
+    ~/.config/zsh: target/zsh
     ~/.config/git: target/git
     ~/.config/ghostty: target/ghostty
     ~/.config/lsd: target/lsd
@@ -19,4 +21,4 @@
 - shell:
   - [git submodule update --init --recursive, Installing submodules]
   - [touch ~/.config/env_keys, Creating ~/.config/env_keys]
-  - [/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)", Installing homebrew]
+  - [scripts/homebrew.sh, Installing homebrew]

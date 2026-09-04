@@ -1,20 +1,70 @@
-source ~/.config/env_keys
+[[ -f ~/.config/env_keys ]] && source ~/.config/env_keys
 
 # add allowing hooks into zsh calls
 autoload -Uz add-zsh-hook
 
+##
+## PATH - must come before any `$+commands[...]` guard below
+##
+
+# keep PATH/FPATH deduped, so nested shells don't accumulate entries.
+# NOTE: -U only applies to *array* assignments, so append via `path=(x $path)`,
+# not `export PATH="x:$PATH"`.
+typeset -U path fpath
+
+# local path (Claude)
+path=("$HOME/.local/bin" $path)
+
+## homebrew - sets PATH, MANPATH, INFOPATH and HOMEBREW_PREFIX
+if [[ -x /opt/homebrew/bin/brew ]]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+    fpath=("${HOMEBREW_PREFIX}/share/zsh/site-functions" $fpath)
+fi
+
+## rancher desktop - kept out of its managed block so it stops clobbering this file
+[[ -d "$HOME/.rd/bin" ]] && path=("$HOME/.rd/bin" $path)
+
+## pnpm
+if (( $+commands[pnpm] )); then
+    export PNPM_HOME="$HOME/Library/pnpm"
+    path=("$PNPM_HOME" $path)
+
+    # TURBOREPO - subgraphs stop caching at turborepo; rely on make caching instead
+    export TURBO_OPTS="--force"
+fi
+
+## go
+(( $+commands[go] )) && export GOPATH="$HOME/code/go"
+
+# re-assign as an array to force -U dedupe over anything that prepended
+# PATH as a scalar above (e.g. `brew shellenv`)
+path=($path)
+
+##
+## completion - compinit must run after fpath is set and before fzf-tab is sourced
+##
+
+autoload -Uz compinit && compinit
+
+## AWS autocomplete
+if (( $+commands[aws_completer] )); then
+    autoload -Uz bashcompinit && bashcompinit
+    complete -C "${commands[aws_completer]}" aws
+fi
+
+##
+## prompt
+##
+
 # Add version control software info to zsh variables for prompt
 autoload -Uz vcs_info
 zstyle ':vcs_info:*' enable git
-vcs_precmd() {
-    vcs_info
-}
 # zstyle ':vcs_info:git*' formats $'%F{130}\UF126 %F{208}%b%f '
 zstyle ':vcs_info:git*' formats $'%F{130}\uE725 %F{208}%b%f '
-add-zsh-hook precmd vcs_precmd
+add-zsh-hook precmd vcs_info
 
 ## pretty prompt
-export PROMPT=$'%F{yellow}%D{%K:%M:%S} %F{84}%n%F{242}@%F{2}%m%F{242}:%F{31}%1~%f ${vcs_info_msg_0_}%# '
+PROMPT=$'%F{yellow}%D{%K:%M:%S} %F{84}%n%F{242}@%F{2}%m%F{242}:%F{31}%1~%f ${vcs_info_msg_0_}%# '
 
 ## Prompt live clock: 1 second timeout on resetting prompt
 TMOUT=1
@@ -58,87 +108,51 @@ add-zsh-hook preexec prompt_preexec
 add-zsh-hook precmd prompt_precmd
 RPS1='%F{cyan}${prompt_elapsed_time}%F{none}'
 
-## zsh history
-export HISTFILE=~/.cache/zsh_history    # history file
-export HISTSIZE=1000000                 # number of history lines to keep in memory
-export SAVEHIST=2000000                 # number of history lines to keep in history file
+##
+## history
+##
+
+HISTFILE=~/.cache/zsh_history           # history file
+HISTSIZE=1000000                        # number of history lines to keep in memory
+SAVEHIST=2000000                        # number of history lines to keep in history file
 setopt inc_append_history               # add commands to history immediately when entered
-setopt hist_expire_dups_first           # expire duplicate events when trimming history
-setopt hist_ignore_dups                 # do not record an event that matches the immediately preceding event
-setopt hist_ignore_all_dups             # do not record an event that is already in history
+setopt hist_ignore_all_dups             # drop older duplicates of a command (implies hist_ignore_dups)
 setopt hist_ignore_space                # do not record events starting with a space
 # unsetopt share_history                  # do not share history between zsh sessions
 
 ## Basic hisotry search with arrow keys
-bindkey '[A' history-search-backward
-bindkey '[B' history-search-forward
+bindkey '^[[A' history-search-backward
+bindkey '^[[B' history-search-forward
 
-## homebrew
-if command -v brew 2>&1 >/dev/null
-then
-    export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
-    export FPATH="$(brew --prefix)/share/zsh/site-functions/zsh_loaded:${FPATH}"
-fi
-
-## AWS
-if command -v aws 2>&1 >/dev/null
-then
-    ## AWS autocomplete
-    autoload bashcompinit && bashcompinit
-    autoload -Uz compinit && compinit
-    complete -C '/usr/local/bin/aws_completer' aws
-fi
-
-## pnpm
-if command -v pnpm 2>&1 >/dev/null
-then
-    export PNPM_HOME="$HOME/Library/pnpm"
-    export PATH="$PNPM_HOME:$PATH"
-
-    # TURBOREPO - subgraphs stop caching at turborepo; rely on make caching instead
-    export TURBO_OPTS="--force"
-fi
-
+##
+## tool integrations
+##
 
 # fzf
-if command -v fzf 2>&1 >/dev/null
-then
-    [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-    source ~/.fzf-tab/fzf-tab.plugin.zsh
-    # https://github.com/Aloxaf/fzf-tab
+if (( $+commands[fzf] )); then
+    source <(fzf --zsh)
     export FZF_DEFAULT_COMMAND='fd --type f --hidden --exclude .git'
+
+    # https://github.com/Aloxaf/fzf-tab
+    [[ -f ~/.config/zsh/fzf-tab/fzf-tab.plugin.zsh ]] && source ~/.config/zsh/fzf-tab/fzf-tab.plugin.zsh
     zstyle ':fzf-tab:*' default-color $'\033[33m'
-    zstyle ':fzf-tab:complete:cd:*' fzf-preview 'exa -1 --color=always $realpath'
+    zstyle ':fzf-tab:complete:cd:*' fzf-preview 'lsd -1 --color=always $realpath'
 fi
 
 ## direnv
-if command -v direnv 2>&1 >/dev/null
-then
-    eval "$(direnv hook zsh)"
-fi
+(( $+commands[direnv] )) && eval "$(direnv hook zsh)"
+
+# mise
+(( $+commands[mise] )) && eval "$(mise activate zsh)"
+
+##
+## misc
+##
+
+export LESSHISTFILE="$HOME/.cache/less/.lesshst"
 
 show_colors () {
     for i in {0..255}; do
         print -Pn "%K{$i}  %k%F{$i}${(l:3::0:)i}%f " ${${(M)$((i%6)):#3}:+$'\n'};
      done
 }
-
-# git shortcut - open webpage of current repo
-
-### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
-export PATH="/Users/andrewarcher/.rd/bin:$PATH"
-### MANAGED BY RANCHER DESKTOP END (DO NOT EDIT)
-
-# mise
-if command -v mise 2>&1 >/dev/null
-then
-    eval "$(mise activate zsh)"
-fi
-
-# go
-if command -v go 2>&1 >/dev/null
-then
-    export GOPATH=$HOME/code/go
-fi
-
-export LESSHISTFILE=.cache/less/.lesshst
