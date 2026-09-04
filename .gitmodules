@@ -11,3 +11,6 @@
 	url = https://github.com/neoclide/coc.nvim.git
     branch = release
     shallow = true
+[submodule "target/zsh/fzf-tab"]
+	path = target/zsh/fzf-tab
+	url = https://github.com/Aloxaf/fzf-tab.git
