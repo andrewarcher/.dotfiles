@@ -1,0 +1,73 @@
+{
+  "$schema": "https://schema.linearmouse.app/0.9.3",
+  "schemes": [
+    {
+      "pointer": {
+        "acceleration": 0.6875,
+        "speed": 0.05,
+        "disableAcceleration": false
+      },
+      "if": {
+        "device": {
+          "productName": "Magic Mouse",
+          "productID": "0x269",
+          "category": "mouse",
+          "vendorID": "0x4c"
+        }
+      }
+    },
+    {
+      "if": {
+        "device": {
+          "productName": "MX Vertical 2️⃣",
+          "productID": "0xb020",
+          "category": "mouse",
+          "vendorID": "0x46d"
+        }
+      },
+      "scrolling": {
+        "reverse": {
+          "vertical": true
+        },
+        "modifiers": {
+          "vertical": {
+            "command": {
+              "type": "auto"
+            }
+          }
+        }
+      }
+    },
+    {
+      "buttons": {
+        "universalBackForward": false
+      },
+      "if": {
+        "device": {
+          "productName": "Magic Trackpad",
+          "productID": "0x265",
+          "category": "trackpad",
+          "vendorID": "0x4c"
+        }
+      }
+    },
+    {
+      "pointer": {
+        "speed": 0.1022
+      },
+      "if": {
+        "device": {
+          "productName": "USB Receiver",
+          "productID": "0xc52b",
+          "category": "mouse",
+          "vendorID": "0x46d"
+        }
+      },
+      "scrolling": {
+        "reverse": {
+          "vertical": true
+        }
+      }
+    }
+  ]
+}
