@@ -1,6 +1,9 @@
 - defaults:
     link:
       relink: true
+      # create parent dirs for every link -- on a fresh machine ~/.config does
+      # not exist yet and every link below it fails without this
+      create: true
 
 - clean: ['~', '~/.config']
 
