@@ -17,6 +17,7 @@ cd ~/.dotfiles && ./install
 4. Check out submodules (dotbot, nvim plugins, fzf-tab)
 5. Install Homebrew if missing (`scripts/homebrew.sh`)
 6. Install everything in `Brewfile` (`scripts/brewfile.sh`)
+7. Write GUI app settings that have no config file (`scripts/macos-defaults.sh`)
 
 Useful flags: `./install --except shell` links only, `./install -v` for verbose output.
 
@@ -124,6 +125,14 @@ keyed to hardware serials, it holds a Paddle licence token and an `apiKey`.
 Its `~/Library/Application Support/Lunar/*.padl` licence files are likewise
 machine-bound and must stay out of the repo.
 
-Hidden Bar stores nine keys of menu-bar UI state in a sandboxed container
-plist. Capture it with `defaults export com.dwarvesv.minimalbar -` if it ever
-becomes worth keeping.
+Hidden Bar stores its settings in a sandboxed container plist, so there is no
+file to symlink. `scripts/macos-defaults.sh` writes the one setting worth
+carrying — `isAutoStart` — and `defaults` redirects into the container on its
+own. Note that this seeds the preference only: Hidden Bar registers the real
+login item with macOS (via `SMAppService`, which binds to the app's code
+signature) the first time it launches and reads that key, so a fresh machine
+still needs the app opened once. Its remaining keys are menu-bar UI state;
+`defaults export com.dwarvesv.minimalbar -` captures them if that changes.
+
+Lunar and LinearMouse start at login as legacy login items, which have no
+plain-file equivalent — enable those by hand in each app.
