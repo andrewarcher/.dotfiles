@@ -146,6 +146,21 @@ fi
 (( $+commands[mise] )) && eval "$(mise activate zsh)"
 
 ##
+## editor
+##
+
+# git needs no core.editor entry -- it falls back to $EDITOR, so this stays the
+# single source of truth. Falls back to vim on a machine where the Brewfile has
+# not run yet; `vim` is deliberately left unaliased so target/vim stays
+# reachable by name as a fallback.
+if (( $+commands[nvim] )); then
+    export EDITOR=nvim VISUAL=nvim
+    alias vi=nvim
+else
+    export EDITOR=vim VISUAL=vim
+fi
+
+##
 ## misc
 ##
 
