@@ -12,17 +12,11 @@ autoload -Uz add-zsh-hook
 # not `export PATH="x:$PATH"`.
 typeset -U path fpath
 
-# local path (Claude)
-path=("$HOME/.local/bin" $path)
-
 ## homebrew - sets PATH, MANPATH, INFOPATH and HOMEBREW_PREFIX
 if [[ -x /opt/homebrew/bin/brew ]]; then
     eval "$(/opt/homebrew/bin/brew shellenv)"
     fpath=("${HOMEBREW_PREFIX}/share/zsh/site-functions" $fpath)
 fi
-
-## rancher desktop - kept out of its managed block so it stops clobbering this file
-[[ -d "$HOME/.rd/bin" ]] && path=("$HOME/.rd/bin" $path)
 
 ## pnpm
 if (( $+commands[pnpm] )); then
@@ -39,6 +33,13 @@ fi
 # re-assign as an array to force -U dedupe over anything that prepended
 # PATH as a scalar above (e.g. `brew shellenv`)
 path=($path)
+
+# Devin and Rancher Desktop own their own PATH entries and append scalar
+# `export PATH=` blocks to the END of this file -- below the dedupe above, and
+# not deduped by -U, so nested shells would otherwise accumulate copies.
+# precmd runs once the whole file is sourced, wherever those blocks land.
+_dedupe_path() { path=($path) }
+add-zsh-hook precmd _dedupe_path
 
 ##
 ## completion - compinit must run after fpath is set and before fzf-tab is sourced
@@ -171,3 +172,10 @@ show_colors () {
         print -Pn "%K{$i}  %k%F{$i}${(l:3::0:)i}%f " ${${(M)$((i%6)):#3}:+$'\n'};
      done
 }
+
+# Added by Devin
+export PATH="/Users/andrewarcher/.local/bin:$PATH"
+
+### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
+export PATH="/Users/andrewarcher/.rd/bin:$PATH"
+### MANAGED BY RANCHER DESKTOP END (DO NOT EDIT)
