@@ -27,3 +27,4 @@
   - [touch ~/.config/env_keys, Creating ~/.config/env_keys]
   - [scripts/homebrew.sh, Installing homebrew]
   - [scripts/brewfile.sh, Installing Brewfile packages]
+  - [scripts/macos-defaults.sh, Applying macOS app defaults]
