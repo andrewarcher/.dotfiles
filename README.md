@@ -128,11 +128,14 @@ machine-bound and must stay out of the repo.
 Hidden Bar stores its settings in a sandboxed container plist, so there is no
 file to symlink. `scripts/macos-defaults.sh` writes the one setting worth
 carrying — `isAutoStart` — and `defaults` redirects into the container on its
-own. Note that this seeds the preference only: Hidden Bar registers the real
-login item with macOS (via `SMAppService`, which binds to the app's code
-signature) the first time it launches and reads that key, so a fresh machine
-still needs the app opened once. Its remaining keys are menu-bar UI state;
-`defaults export com.dwarvesv.minimalbar -` captures them if that changes.
+own. Writing that key only seeds the preference: the real login item is a
+separate helper bundle (`com.dwarvesv.LauncherApplication`) that Hidden Bar
+registers via `SMLoginItemSetEnabled` when it launches and reads the key. The
+script therefore ends by launching the app, so `./install` leaves a fresh
+machine fully set up. Confirming the registration actually took needs a reboot,
+or `sudo sfltool dumpbtm` to read it back. Hidden Bar's remaining keys are
+menu-bar UI state; `defaults export com.dwarvesv.minimalbar -` captures them if
+that changes.
 
 Lunar and LinearMouse start at login as legacy login items, which have no
 plain-file equivalent — enable those by hand in each app.
