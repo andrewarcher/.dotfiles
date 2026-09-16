@@ -13,6 +13,7 @@
     ~/.config/git: target/git
     ~/.config/ghostty: target/ghostty
     ~/.config/lsd: target/lsd
+    ~/.config/linearmouse: target/linearmouse
     ~/.config/finicky.ts: target/finicky.ts
 
 - create:

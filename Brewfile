@@ -105,6 +105,14 @@ brew "zsh-history-substring-search"
 cask "calendr"
 # Utility for customizing which browser to start
 cask "finicky"
+# Terminal emulator that uses platform-native UI and GPU acceleration
+cask "ghostty"
+# Utility to hide menu bar items
+cask "hiddenbar"
+# Utility to customise mouse and trackpad behaviour
+cask "linearmouse"
+# Adaptive brightness for external displays
+cask "lunar"
 # Finder Toolbar app to open the current directory in Terminal
 cask "openinterminal-lite"
 npm "corepack"

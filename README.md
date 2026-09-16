@@ -31,6 +31,7 @@ Useful flags: `./install --except shell` links only, `./install -v` for verbose 
 | `target/git/`         | `~/.config/git`      | `config` + global `ignore`                |
 | `target/ghostty/`     | `~/.config/ghostty`  | terminal                                  |
 | `target/lsd/`         | `~/.config/lsd`      | `ls` replacement                          |
+| `target/linearmouse/` | `~/.config/linearmouse` | per-device mouse/trackpad tuning       |
 | `target/finicky.ts`   | `~/.config/finicky.ts` | browser/URL routing                     |
 
 ## Secrets
@@ -41,9 +42,10 @@ exports there.
 
 ## Notes
 
-- The `Brewfile` was seeded from `brew bundle dump` and lists CLI tools only.
-  GUI apps installed outside Homebrew (Ghostty, Firefox, Slack, Zoom, Figma,
-  Spotify) are not captured — several of these are what `finicky.ts` routes to.
+- The `Brewfile` covers CLI tools plus the casks for GUI apps that are worth
+  reinstalling automatically. GUI apps still installed outside Homebrew
+  (Firefox, Slack, Zoom, Figma, Spotify) are not captured — several of these are
+  what `finicky.ts` routes to.
 - Regenerate after installing something new: `brew bundle dump --force --no-vscode`
 - `target/nvim/pack/` uses nvim's native package loading; plugins are submodules.
 
@@ -98,3 +100,30 @@ workspace. Any repo with it in `devDependencies` works; a bare `.ts` file
 outside a project will not.
 
 Update plugins with `git submodule update --remote`.
+
+## GUI app config
+
+Of the casks in the `Brewfile`, only some keep config worth versioning:
+
+| App         | Config                                 | In repo                     |
+| ----------- | -------------------------------------- | --------------------------- |
+| Ghostty     | `~/.config/ghostty/config`             | yes — `target/ghostty/`     |
+| LinearMouse | `~/.config/linearmouse/linearmouse.json` | yes — `target/linearmouse/` |
+| Hidden Bar  | sandboxed plist, 9 keys of UI state    | no                          |
+| Lunar       | `fyi.lunar.Lunar` plist                | **no — contains secrets**   |
+
+The LinearMouse copy has the `serialNumber` from each device matcher removed.
+That field is optional (matching falls back to `productName` + `vendorID` +
+`productID`), the values are Bluetooth MAC addresses, and this repo is public.
+Dropping them also makes the config portable — the same model of mouse on
+another machine still matches. Re-add a serial only to tell two identical
+devices apart.
+
+Lunar's plist is deliberately not versioned: alongside per-display calibration
+keyed to hardware serials, it holds a Paddle licence token and an `apiKey`.
+Its `~/Library/Application Support/Lunar/*.padl` licence files are likewise
+machine-bound and must stay out of the repo.
+
+Hidden Bar stores nine keys of menu-bar UI state in a sandboxed container
+plist. Capture it with `defaults export com.dwarvesv.minimalbar -` if it ever
+becomes worth keeping.
