@@ -14,7 +14,7 @@ cd ~/.dotfiles && ./install
 1. Symlink everything in `target/` into `~` and `~/.config` (see `install.conf.yaml`)
 2. Remove stale symlinks from `~` and `~/.config`
 3. Create `~/.cache/less` and an empty `~/.config/env_keys`
-4. Check out submodules (dotbot, vim/nvim plugins, fzf-tab)
+4. Check out submodules (dotbot, nvim plugins, fzf-tab)
 5. Install Homebrew if missing (`scripts/homebrew.sh`)
 6. Install everything in `Brewfile` (`scripts/brewfile.sh`)
 
@@ -27,7 +27,6 @@ Useful flags: `./install --except shell` links only, `./install -v` for verbose 
 | `target/zshrc`        | `~/.zshrc`           | prompt, history, tool integrations        |
 | `target/inputrc`      | `~/.inputrc`         | readline arrow-key history search         |
 | `target/zsh/`         | `~/.config/zsh`      | fzf-tab submodule                         |
-| `target/vim/`         | `~/.config/vim`      | XDG vimrc — needs vim ≥ 9.1.0327          |
 | `target/nvim/`        | `~/.config/nvim`     | init.lua + LSP — needs nvim ≥ 0.11        |
 | `target/git/`         | `~/.config/git`      | `config` + global `ignore`                |
 | `target/ghostty/`     | `~/.config/ghostty`  | terminal                                  |
@@ -46,14 +45,13 @@ exports there.
   GUI apps installed outside Homebrew (Ghostty, Firefox, Slack, Zoom, Figma,
   Spotify) are not captured — several of these are what `finicky.ts` routes to.
 - Regenerate after installing something new: `brew bundle dump --force --no-vscode`
-- `target/vim/pack/` uses vim's native package loading; plugins are submodules.
+- `target/nvim/pack/` uses nvim's native package loading; plugins are submodules.
 
 ## Editor
 
-`nvim` is the default editor: `.zshrc` exports `EDITOR`/`VISUAL` and aliases
-`vi`. Git needs no `core.editor` — it falls back to `$EDITOR`, so that stays the
-single source of truth. `vim` is deliberately left unaliased, so `target/vim/`
-stays reachable by name as a fallback (it still has vim-go).
+`nvim` is the editor: `.zshrc` exports `EDITOR`/`VISUAL` and aliases both `vi`
+and `vim` to it. Git needs no `core.editor` — it falls back to `$EDITOR`, so
+that stays the single source of truth.
 
 The nvim config is a single `init.lua` (~200 lines) plus the `nvim-lspconfig`
 submodule under `target/nvim/pack/plugins/start/`, loaded via nvim's native

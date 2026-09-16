@@ -2,10 +2,6 @@
 	path = dotbot
 	url = https://github.com/anishathalye/dotbot
 	shallow = true
-[submodule "target/vim/pack/plugins/vim-go"]
-	path = target/vim/pack/plugins/start/vim-go
-	url = https://github.com/fatih/vim-go.git
-	shallow = true
 [submodule "target/zsh/fzf-tab"]
 	path = target/zsh/fzf-tab
 	url = https://github.com/Aloxaf/fzf-tab.git
