@@ -1,4 +1,6 @@
 tap "pakerwreah/calendr", trusted: true
+# Static type checker for Python, a fork of pyright
+brew "basedpyright"
 # Bourne-Again SHell, a UNIX command interpreter
 brew "bash"
 # Get/set bluetooth power and discoverable state
@@ -35,6 +37,8 @@ brew "gnutls"
 brew "gnupg"
 # Open source programming language to build simple/reliable/efficient software
 brew "go"
+# Language server for Go
+brew "gopls"
 # Improved top (interactive process viewer)
 brew "htop"
 # Modern load testing tool, using Go and JavaScript
@@ -55,6 +59,8 @@ brew "md5sha1sum"
 brew "mise"
 # Utility for NATS Server and JetStream administration
 brew "nats"
+# Ambitious Vim-fork focused on extensibility and agility
+brew "neovim"
 # Outputs current CPU temperature for OSX
 brew "osx-cpu-temp"
 # Fast, disk space efficient package manager
@@ -67,10 +73,14 @@ brew "python@3.11"
 brew "python@3.12"
 # Repository tool for Android development
 brew "repo"
+# Extremely fast Python linter, formatter and language server
+brew "ruff"
 # Monitors sleep, wakeup, and idleness of a Mac
 brew "sleepwatcher", restart_service: :changed
 # OpenTofu / Terraform / Terragrunt / Terramate / Atmos version manager
 brew "tenv"
+# Language Server Protocol implementation for TypeScript
+brew "typescript-language-server"
 # Validating, recursive, caching DNS resolver
 brew "unbound"
 # Tool for creating isolated virtual python environments
