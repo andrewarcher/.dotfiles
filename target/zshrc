@@ -150,12 +150,12 @@ fi
 ##
 
 # git needs no core.editor entry -- it falls back to $EDITOR, so this stays the
-# single source of truth. Falls back to vim on a machine where the Brewfile has
-# not run yet; `vim` is deliberately left unaliased so target/vim stays
-# reachable by name as a fallback.
+# single source of truth. The guard falls back to the system vim on a machine
+# where the Brewfile has not run yet, rather than leaving a broken EDITOR
+# mid-bootstrap.
 if (( $+commands[nvim] )); then
     export EDITOR=nvim VISUAL=nvim
-    alias vi=nvim
+    alias vi=nvim vim=nvim
 else
     export EDITOR=vim VISUAL=vim
 fi

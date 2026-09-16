@@ -8,7 +8,6 @@
     # ~/.tmux.conf: tmux.conf
     ~/.zshrc: target/zshrc
     ~/.inputrc: target/inputrc
-    ~/.config/vim: target/vim
     ~/.config/nvim: target/nvim
     ~/.config/zsh: target/zsh
     ~/.config/git: target/git
