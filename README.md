@@ -50,8 +50,10 @@ exports there.
 
 ## Editor
 
-`nvim` is the primary editor; `target/vim/` is kept as a fallback and still has
-vim-go.
+`nvim` is the default editor: `.zshrc` exports `EDITOR`/`VISUAL` and aliases
+`vi`. Git needs no `core.editor` — it falls back to `$EDITOR`, so that stays the
+single source of truth. `vim` is deliberately left unaliased, so `target/vim/`
+stays reachable by name as a fallback (it still has vim-go).
 
 The nvim config is a single `init.lua` (~200 lines) plus the `nvim-lspconfig`
 submodule under `target/nvim/pack/plugins/start/`, loaded via nvim's native
