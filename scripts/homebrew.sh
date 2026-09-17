@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+BASEDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+# brew may already be installed but absent from PATH -- see brew-env.sh. Without
+# this the check below would miss it and try to reinstall.
+# shellcheck source=scripts/brew-env.sh
+source "${BASEDIR}/scripts/brew-env.sh"
+
 if command -v brew >/dev/null 2>&1; then
   echo "brew already installed"
   exit 0
