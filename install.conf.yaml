@@ -4,6 +4,13 @@
       # create parent dirs for every link -- on a fresh machine ~/.config does
       # not exist yet and every link below it fails without this
       create: true
+    shell:
+      # dotbot hides shell output by default, which turns any failure into a
+      # bare "Command [...] failed". stdin also lets these steps prompt --
+      # homebrew.sh needs a password on a fresh machine.
+      stdin: true
+      stdout: true
+      stderr: true
 
 - clean: ['~', '~/.config']
 
