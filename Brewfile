@@ -34,7 +34,7 @@ brew "wget"
 ### Containers
 # Pack, ship and run any application as a lightweight container
 brew "docker"
-# 
+# Container runtimes on macOS with minimal setup -- the engine behind `docker`
 brew "colima"
 # Kubernetes CLI To Manage Your Clusters In Style!
 brew "k9s"
