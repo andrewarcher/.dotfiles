@@ -12,11 +12,23 @@ autoload -Uz add-zsh-hook
 # not `export PATH="x:$PATH"`.
 typeset -U path fpath
 
-## homebrew - sets PATH, MANPATH, INFOPATH and HOMEBREW_PREFIX
-if [[ -x /opt/homebrew/bin/brew ]]; then
-    eval "$(/opt/homebrew/bin/brew shellenv)"
+## mise - installs itself here, and this must precede the `$+commands[mise]`
+## guard below as well as anything that resolves a mise-managed tool
+path=("$HOME/.local/bin" $path)
+
+## homebrew
+#
+# mise pours the formulae in config.toml straight into this prefix and does not
+# install the `brew` binary, so the prefix has to go on PATH on its own rather
+# than via `brew shellenv` -- a fresh machine has the formulae but no brew.
+# When brew *is* installed, shellenv still runs for MANPATH/INFOPATH and the
+# rest of its variables.
+export HOMEBREW_PREFIX=/opt/homebrew
+if [[ -d "${HOMEBREW_PREFIX}/bin" ]]; then
+    path=("${HOMEBREW_PREFIX}/bin" "${HOMEBREW_PREFIX}/sbin" $path)
     fpath=("${HOMEBREW_PREFIX}/share/zsh/site-functions" $fpath)
 fi
+[[ -x "${HOMEBREW_PREFIX}/bin/brew" ]] && eval "$("${HOMEBREW_PREFIX}/bin/brew" shellenv)"
 
 ## pnpm
 if (( $+commands[pnpm] )); then
@@ -34,10 +46,11 @@ fi
 # PATH as a scalar above (e.g. `brew shellenv`)
 path=($path)
 
-# Devin and Rancher Desktop own their own PATH entries and append scalar
-# `export PATH=` blocks to the END of this file -- below the dedupe above, and
-# not deduped by -U, so nested shells would otherwise accumulate copies.
-# precmd runs once the whole file is sourced, wherever those blocks land.
+# Some installers append scalar `export PATH=` blocks to the END of this file --
+# below the dedupe above, and not deduped by -U, so nested shells would
+# otherwise accumulate copies. precmd runs once the whole file is sourced,
+# wherever those blocks land. (Anything appended here is also a local edit to a
+# file this repo owns; `mise dot diff` will show it.)
 _dedupe_path() { path=($path) }
 add-zsh-hook precmd _dedupe_path
 
@@ -143,7 +156,10 @@ fi
 ## direnv
 (( $+commands[direnv] )) && eval "$(direnv hook zsh)"
 
-# mise
+# mise -- this is the interactive half of activation. ~/.zprofile (written by
+# `[bootstrap.mise_shell_activate]`) puts the shim farm on PATH for everything
+# that never sees a prompt; this puts the resolved tool paths ahead of those
+# shims and exports mise's env vars, which shims alone do not do.
 (( $+commands[mise] )) && eval "$(mise activate zsh)"
 
 ##
@@ -152,7 +168,7 @@ fi
 
 # git needs no core.editor entry -- it falls back to $EDITOR, so this stays the
 # single source of truth. The guard falls back to the system vim on a machine
-# where the Brewfile has not run yet, rather than leaving a broken EDITOR
+# where `mise bootstrap` has not run yet, rather than leaving a broken EDITOR
 # mid-bootstrap.
 if (( $+commands[nvim] )); then
     export EDITOR=nvim VISUAL=nvim
@@ -172,10 +188,3 @@ show_colors () {
         print -Pn "%K{$i}  %k%F{$i}${(l:3::0:)i}%f " ${${(M)$((i%6)):#3}:+$'\n'};
      done
 }
-
-# Added by Devin
-export PATH="/Users/andrewarcher/.local/bin:$PATH"
-
-### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
-export PATH="/Users/andrewarcher/.rd/bin:$PATH"
-### MANAGED BY RANCHER DESKTOP END (DO NOT EDIT)

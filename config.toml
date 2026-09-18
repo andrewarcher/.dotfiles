@@ -1,0 +1,176 @@
+# Global mise configuration. This repository *is* `$MISE_CONFIG_DIR`
+# (`~/.config/mise`), which is what makes `[tools]` below global: every tool is
+# on PATH everywhere, and any project with its own `mise.toml` overrides the
+# version for that directory. See README.md for how a new machine is set up.
+#
+# `mise bootstrap` applies everything here in one pass. Phases run in a fixed
+# order -- packages, repos, dotfiles, shell activation, macOS defaults, tools,
+# then the `bootstrap` task -- so later phases can rely on earlier ones.
+
+[settings]
+# `mise dot add <path>` writes new sources here rather than into the default
+# `~/.dotfiles`, so an adopted file lands next to the ones already committed.
+dotfiles.root = "~/.config/mise/dotfiles"
+
+##
+## shell activation
+##
+
+[bootstrap.mise_shell_activate]
+# Login shells get the shim farm on PATH. That covers every process that
+# inherits a login environment but never displays a prompt -- GUI apps, and
+# nvim spawning language servers -- which plain `mise activate` cannot reach.
+#
+# Interactive shells additionally get real PATH activation, from the
+# `mise activate zsh` line in dotfiles/zshrc. That puts resolved tool paths
+# *ahead* of the shims, so interactive use pays no shim dispatch cost and still
+# picks up mise's env vars. mise skips generating its own zshrc block because
+# `[dotfiles]` below already owns that file.
+zprofile = "shims"
+
+##
+## packages
+##
+
+# mise pours homebrew/core bottles and casks into /opt/homebrew itself -- it
+# never shells out to `brew` and does not need Homebrew installed. That is why
+# there is no Homebrew installer script here any more. Formulae poured by mise
+# and by a real Homebrew are mutually legible, so an existing brew install
+# keeps working.
+#
+# Only things mise has no tool backend for belong here. Anything with a backend
+# goes in `[tools]` so projects can override its version.
+
+[bootstrap.brew]
+# Claim the apps already installed on this machine instead of replacing their
+# bundles. Replacing an .app resets its macOS Privacy & Security grants
+# (Accessibility, Screen Recording, ...), which these apps all need.
+adopt = true
+
+[bootstrap.packages]
+# Distributed revision control system -- also what clones this repo, so a fresh
+# machine needs Xcode's command line tools git until this one is poured.
+"brew:git" = "latest"
+# Improved top (interactive process viewer)
+"brew:htop" = "latest"
+# Executes a program periodically, showing output fullscreen
+"brew:watch" = "latest"
+# Internet file retriever
+"brew:wget" = "latest"
+
+# Menu bar calendar app. Fully-qualified tap name; mise infers the tap's GitHub
+# URL from it, so no `[bootstrap.brew.taps]` entry is needed.
+"brew-cask:pakerwreah/calendr/calendr" = "latest"
+# Utility for customizing which browser to start -- configured by dotfiles/finicky.ts
+"brew-cask:finicky" = "latest"
+# Terminal emulator that uses platform-native UI and GPU acceleration
+"brew-cask:ghostty" = "latest"
+# Utility to customise mouse and trackpad behaviour
+"brew-cask:linearmouse" = "latest"
+# Adaptive brightness for external displays
+"brew-cask:lunar" = "latest"
+
+##
+## vendored checkouts
+##
+
+# These replace what used to be git submodules. Paths must be absolute in a
+# global config, which is fine -- the adopt install fixes this repo at
+# ~/.config/mise. Both are gitignored; bootstrap clones them, and
+# `mise bootstrap repos update` fast-forwards them.
+[bootstrap.repos]
+# Completion menu for zsh, sourced by dotfiles/zshrc
+"~/.config/mise/dotfiles/zsh/fzf-tab" = { url = "https://github.com/Aloxaf/fzf-tab.git" }
+# Per-server LSP definitions, loaded by nvim's native packpath
+"~/.config/mise/dotfiles/nvim/pack/plugins/start/nvim-lspconfig" = { url = "https://github.com/neovim/nvim-lspconfig.git" }
+
+##
+## dotfiles
+##
+
+# Symlink mode, so editing the live path edits the file in this repo. Sources
+# are relative to this config file, i.e. to ~/.config/mise.
+[dotfiles]
+"~/.zshrc" = { source = "dotfiles/zshrc" }
+"~/.inputrc" = { source = "dotfiles/inputrc" }
+"~/.config/zsh" = { source = "dotfiles/zsh" }
+"~/.config/nvim" = { source = "dotfiles/nvim" }
+"~/.config/git" = { source = "dotfiles/git" }
+"~/.config/ghostty" = { source = "dotfiles/ghostty" }
+"~/.config/lsd" = { source = "dotfiles/lsd" }
+"~/.config/linearmouse" = { source = "dotfiles/linearmouse" }
+"~/.config/finicky.ts" = { source = "dotfiles/finicky.ts" }
+
+##
+## tools
+##
+
+# Global because this file is the global config. A project that pins its own
+# version in `mise.toml` wins inside that directory -- which is the whole point
+# of moving these off Homebrew.
+[tools]
+
+## language toolchains
+go = "latest"
+node = "lts"
+# Also the installer mise uses for the `pipx:` backend below.
+uv = "latest"
+
+## shell and CLI
+direnv = "latest"
+# Used by dotfiles/zshrc for FZF_DEFAULT_COMMAND. The old Brewfile never
+# installed it, so that setting was silently broken on a fresh machine.
+fd = "latest"
+fzf = "latest"
+lsd = "latest"
+neovim = "latest"
+
+## git
+git-lfs = "latest"
+# The default `gitlab:` backend reads the GitLab release API, which answers 401
+# unauthenticated. The asdf plugin downloads the release asset directly.
+"asdf:mise-plugins/mise-glab" = "latest"
+
+## containers and kubernetes
+# colima shells out to `limactl`, and nothing declares that dependency for it
+# (Homebrew's formula did), so lima is listed explicitly.
+colima = "latest"
+lima = "latest"
+docker-cli = "latest"
+k9s = "latest"
+# Two registry entries out of one upstream repo; `kubectx` alone does not
+# provide `kubens`.
+kubectx = "latest"
+kubens = "latest"
+
+## language servers -- see README.md for how nvim resolves these per project
+"go:golang.org/x/tools/gopls" = "latest"
+"npm:typescript-language-server" = "latest"
+"pipx:basedpyright" = "latest"
+ruff = "latest"
+
+## hooks
+pre-commit = "latest"
+
+## Not used directly. The calendr tap above publishes no Homebrew API metadata,
+## so mise falls back to evaluating the tap's Casks/calendr.rb with its own
+## Cask DSL shim -- which needs Ruby 3+. Without this, every command that
+## inspects `[bootstrap.packages]` fails on that one cask, `status` included.
+ruby = "latest"
+
+##
+## everything with no declarative equivalent
+##
+
+[tasks.bootstrap]
+description = "Machine setup that no bootstrap section covers"
+run = """
+# dotfiles/zshrc points LESSHISTFILE inside this directory; less will not
+# create the parent itself.
+mkdir -p ~/.cache/less
+
+# Per-machine secrets, deliberately not in this repo -- dotfiles/zshrc sources
+# it when present. Created empty and 0600 so there is an obvious place to put
+# keys; never overwritten, so re-running bootstrap cannot lose them.
+[ -e ~/.config/env_keys ] || install -m 600 /dev/null ~/.config/env_keys
+"""

@@ -1,6 +1,6 @@
 -- nvim 0.11+. No plugin manager: LSP and completion are nvim built-ins, and
 -- the one plugin (nvim-lspconfig, for its maintained server definitions) is a
--- git submodule loaded via native packpath.
+-- checkout loaded via native packpath.
 --
 -- Settings that nvim already defaults to (nocompatible, syntax, filetype
 -- plugin indent, incsearch, hlsearch, autoread, autoindent, nobackup, utf-8)
@@ -61,21 +61,19 @@ vim.o.expandtab = true -- convert tabs to spaces
 --
 -- server binary resolution
 --
--- The Brewfile installs a default of every server, but a project pinning its
--- own toolchain has to win. Resolved per project root, in order:
+-- Every server is a global mise tool (see config.toml), but a project pinning
+-- its own toolchain has to win. Resolved per project root, in order:
 --
 --   1. project-local bin -- node_modules/.bin, .venv/bin
 --   2. mise, asked for the version active in THAT directory
---   3. Homebrew -- the Brewfile default
---   4. PATH
+--   3. PATH
 --
--- Step 2 is why PATH alone will not do: mise shims sit on PATH globally and
--- are executable even with no version set, then exit 1 the moment they spawn
--- (`No version is set for shim: gopls`). Asking mise directly either yields a
--- real absolute path for this directory or fails cleanly into the Homebrew
--- default -- which is also why Homebrew is tried before bare PATH.
+-- Step 2 is why PATH alone will not do. A mise shim is on PATH globally and is
+-- executable even where no version applies, then exits 1 the moment it spawns
+-- (`No version is set for shim: gopls`) -- so nvim would see a working command
+-- and get a server that dies immediately. Asking mise directly yields either a
+-- real absolute path for this directory or a clean failure.
 
-local brew = vim.env.HOMEBREW_PREFIX or "/opt/homebrew"
 local resolved = {}
 
 local function resolve(bin, root)
@@ -101,10 +99,6 @@ local function resolve(bin, root)
     end
   end
 
-  if not found and vim.uv.fs_stat(brew .. "/bin/" .. bin) then
-    found = brew .. "/bin/" .. bin
-  end
-
   found = found or bin
   resolved[key] = found
   return found
@@ -124,13 +118,15 @@ end
 --
 -- LSP
 --
--- Server definitions come from the nvim-lspconfig submodule under
--- pack/plugins/start, which ships one maintained lsp/<name>.lua per server and
--- is picked up via nvim's packpath. Servers start lazily when a matching
--- buffer opens, so listing one you have not installed costs nothing.
+-- Server definitions come from the nvim-lspconfig checkout under
+-- pack/plugins/start (cloned by `[bootstrap.repos]`), which ships one
+-- maintained lsp/<name>.lua per server and is picked up via nvim's packpath.
+-- Servers start lazily when a matching buffer opens, so listing one you have
+-- not installed costs nothing.
 --
--- Add a language: put its server in the Brewfile, then add a row here using
--- its nvim-lspconfig name. Everything not overridden tracks upstream.
+-- Add a language: put its server in `[tools]` in config.toml, then add a row
+-- here using its nvim-lspconfig name. Everything not overridden tracks
+-- upstream.
 
 local servers = {
   -- lspconfig name   binary                          args            overrides
