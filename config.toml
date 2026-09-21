@@ -163,6 +163,10 @@ pre-commit = "latest"
 
 [tasks.bootstrap]
 description = "Machine setup that no bootstrap section covers"
+# tasks/calendr-defaults writes CalendR's preferences. It is a task rather than
+# a `[bootstrap.macos.defaults]` block because CalendR is sandboxed -- see the
+# comment at the top of that file.
+depends = ["calendr-defaults"]
 run = """
 # dotfiles/zshrc points LESSHISTFILE inside this directory; less will not
 # create the parent itself.

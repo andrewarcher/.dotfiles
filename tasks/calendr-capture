@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+#MISE description="Bring CalendR settings changed in its UI back into the repo (--update to save)"
+set -euo pipefail
+
+# Report how the live app differs from calendr/defaults.toml. Pass --update to
+# write those differences back into that file:
+#
+#   mise run calendr-capture              # just show the drift
+#   mise run calendr-capture -- --update  # save it into the repo
+[[ "$(uname -s)" == "Darwin" ]] || { echo "not macOS, skipping" >&2; exit 0; }
+
+# Any python3 the OS provides will do -- sync.py deliberately avoids
+# tomllib so it runs on the 3.9 macOS ships, before any mise python exists.
+command -v python3 >/dev/null || {
+  echo "python3 not found; install Xcode command line tools" >&2; exit 1
+}
+
+exec python3 "$(dirname "$0")/../calendr/sync.py" capture "$@"

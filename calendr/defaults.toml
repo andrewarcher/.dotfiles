@@ -1,0 +1,55 @@
+# CalendR's preferences, versioned. This file is the source of truth:
+# `mise run calendr-defaults` writes every key below into the app, and
+# `mise run calendr-capture` brings changes you made in CalendR's UI back here.
+#
+# The value's TOML type sets the plist type, so they must match what CalendR
+# expects. Note that `1.0` is a real and `1` is an integer -- they are not
+# interchangeable, and a bool is neither.
+#
+# Keys are deliberately absent rather than forgotten. `calendr-capture`
+# reports any new one the app starts writing. Never add:
+#   disabled_calendars                   calendar UUIDs, specific to one account
+#   installation_bookmark                security-scoped bookmark, encodes local paths
+#   last_checked_version                 the app's own updater state
+#   NSNavPanelExpandedSizeForOpenMode    window geometry
+#   NSOSPLastRootDirectory               security-scoped bookmark, encodes local paths
+#   NSStatusItem *                       menu bar coordinates, depend on the machine's other items
+#   saved NSStatusItem *                 menu bar coordinates, depend on the machine's other items
+#   wdsAuthToken                         a JWT; this repo is public
+
+calendar_app_view_mode = "month"
+calendar_scaling = 1.0
+calendar_text_scaling = 1.0
+date_hover_option = true
+event_dots_style = "multiple"
+event_status_item_check_range = 0
+event_status_item_detect_notch = false
+event_status_item_flashing = true
+event_status_item_length = 16
+event_status_item_text_scaling = 1.15
+force_local_time_zone = true
+future_events_days = 0
+highlighted_weekdays = [0, 6]
+launch_agent_enabled = true
+preserve_selected_date = false
+show_chinese_lunar_calendar = false
+show_chinese_solar_terms = false
+show_declined_events = false
+show_event_list_summary = true
+show_event_status_item = true
+show_map = true
+show_month_outline = true
+show_past_events = false
+show_recurrence_indicator = false
+show_week_numbers = true
+status_item_background_enabled = false
+status_item_date_enabled = true
+status_item_date_format = "E MMM d"
+status_item_date_style = 0
+status_item_icon_enabled = false
+status_item_icon_style = "dayOfWeek"
+status_item_open_on_hover = false
+status_item_text_scaling = 1.4
+text_scaling = 1.0
+transparency_level = 2
+week_count = 6

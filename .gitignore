@@ -6,3 +6,6 @@
 # mise writes lockfiles next to the config when `lockfile` is enabled; the
 # global toolset is intentionally unpinned ("latest").
 /mise.lock
+
+# Byte-cache from calendr/sync.py
+__pycache__/

@@ -183,7 +183,7 @@ Of the casks in `[bootstrap.packages]`, only some keep config worth versioning:
 | Ghostty     | `~/.config/ghostty/config`               | yes — `dotfiles/ghostty/`   |
 | LinearMouse | `~/.config/linearmouse/linearmouse.json` | yes — `dotfiles/linearmouse/` |
 | Finicky     | `~/.config/finicky.ts`                   | yes — `dotfiles/finicky.ts` |
-| CalendR     | app-managed plist, UI state only         | no                          |
+| CalendR     | sandboxed plist, 36 real preferences     | yes — `tasks/calendr-defaults` |
 | Lunar       | `fyi.lunar.Lunar` plist                  | **no — contains secrets**   |
 
 The LinearMouse copy has the `serialNumber` from each device matcher removed.
@@ -198,10 +198,99 @@ keyed to hardware serials, it holds a Paddle licence token and an `apiKey`.
 Its `~/Library/Application Support/Lunar/*.padl` licence files are likewise
 machine-bound and must stay out of the repo.
 
+### Apps with no file to symlink
+
+CalendR keeps its settings in a plist, so there is nothing to link.
+`calendr/defaults.toml` holds them and is the source of truth; `calendr/sync.py`
+moves them in both directions:
+
+```sh
+mise run calendr-defaults             # write the repo's values into the app
+mise run calendr-capture              # show what you changed in CalendR's UI
+mise run calendr-capture -- --update  # bring those changes into the repo
+```
+
+`[tasks.bootstrap]` depends on `calendr-defaults`, so `mise bootstrap` applies
+them — but it will not silently discard a setting you changed in the app. When
+the live app holds anything the repo does not, it stops and asks:
+
+```
+CalendR differs from the repo:
+  changed  show_week_numbers = false   (repo: true)
+  new      some_new_pref = "hello"
+
+  2 changed, 1 new in CalendR.
+  [o]verwrite from repo, [s]ave into repo, [k]eep and skip?
+```
+
+`save` writes them into `calendr/defaults.toml` for you to commit. Only a
+*difference* prompts — a fresh machine, where the repo simply has keys the app
+does not yet, applies without asking.
+
+How it decides when nobody can answer, in order:
+
+| Condition                            | Choice                                    |
+| ------------------------------------ | ----------------------------------------- |
+| `MISE_CALENDR_DRIFT=overwrite\|save\|skip` | that, without asking                |
+| `mise bootstrap --yes`               | `overwrite` — unattended, so declared state wins |
+| a controlling terminal               | asks on it                                |
+| no terminal (launchd, CI)            | `skip`, reports the drift, changes nothing |
+
+The prompt is read from `/dev/tty`, not stdin, because mise pipes a task's
+stdin. Bare Enter and EOF both mean `skip`: nothing is written and nothing is
+lost, which is the only safe default when the answer is unknown.
+
+`capture` also names any key a new CalendR version starts writing, so additions
+get noticed rather than silently ignored.
+
+#### macOS will not let bootstrap grant itself this
+
+CalendR is sandboxed, so its preferences sit in `~/Library/Containers/`, and
+reaching another app's container needs the calling program — whichever terminal
+runs bootstrap — to hold Full Disk Access. **Bootstrap cannot grant that to
+itself, and no script can.** The TCC databases are SIP-protected, so even root
+cannot write them; `tccutil` only *resets* permissions; and a Full Disk Access
+grant is accepted only from System Settings or an MDM-delivered PPPC profile.
+That is the point of the mechanism, not a gap in it.
+
+So the step degrades instead of failing. When access is refused it names the app
+needing the grant, prints the command that jumps to the right settings pane, and
+**exits 0** — `[tasks.bootstrap]` depends on this task, so failing would abort
+the whole bootstrap over a cosmetic step. Re-run `mise run calendr-defaults`
+after granting. `calendr-capture` does exit non-zero, since you asked for it
+directly.
+
+Reading a container is sometimes permitted where writing is not, so a run can
+report differences and still be unable to apply them.
+
+One thing that is *not* a permission problem: with the container root absent — a
+machine where CalendR was installed but never opened — `defaults write` exits 0
+and writes `~/Library/Preferences/<domain>.plist`, outside the sandbox, where
+the app never looks. `apply` therefore launches CalendR once to let it create
+the container, and its write probe checks the value reads back through the
+domain and that nothing appeared outside, rather than trusting the exit code.
+
+It does **not** use `[bootstrap.macos.defaults]`, and this is worth knowing
+before reaching for that section: CalendR is sandboxed, so its preferences live
+under `~/Library/Containers/br.paker.Calendr/`. `defaults` redirects there
+automatically; mise's macos-defaults writer does not — it writes
+`~/Library/Preferences/br.paker.Calendr.plist`, a path the app never reads, and
+**reports success**. Verified by writing a probe key both ways. Any sandboxed app
+needs a `defaults write` task, not a defaults block.
+
+Two details in that script that are easy to get wrong: floats are written as
+`'<real>1.4</real>'` fragments rather than `-float`, because `-float` stores a
+32-bit float (1.4 becomes 1.399999976158142 and never matches); and the app is
+quit first, because it rewrites its plist on exit and would otherwise clobber
+what was just written.
+
+Excluded from version control deliberately: `wdsAuthToken` (a JWT — this repo is
+public), the security-scoped bookmark blobs, `disabled_calendars` (account
+UUIDs), and the `NSStatusItem` menu bar coordinates. Those keys stay whatever
+the app makes them.
+
 Lunar and LinearMouse start at login as legacy login items, which have no
-plain-file equivalent — enable those by hand in each app. If something with a
-real preference key needs carrying to a new machine, it belongs in
-`[bootstrap.macos.defaults]` rather than a script.
+plain-file equivalent — enable those by hand in each app.
 
 ## Notes
 

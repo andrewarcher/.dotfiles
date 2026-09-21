@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+#MISE description="Write CalendR's preferences from calendr/defaults.toml"
+set -euo pipefail
+
+# See calendr/sync.py for why this is a task rather than a
+# `[bootstrap.macos.defaults]` block, and why values go in as plist fragments.
+[[ "$(uname -s)" == "Darwin" ]] || { echo "not macOS, skipping CalendR defaults" >&2; exit 0; }
+
+# Any python3 the OS provides will do -- sync.py deliberately avoids
+# tomllib so it runs on the 3.9 macOS ships, before any mise python exists.
+command -v python3 >/dev/null || {
+  echo "python3 not found; install Xcode command line tools" >&2; exit 1
+}
+
+exec python3 "$(dirname "$0")/../calendr/sync.py" apply
