@@ -118,6 +118,7 @@ adopt = true
 ## language toolchains
 go = "latest"
 node = "lts"
+python = "latest"
 # Also the installer mise uses for the `pipx:` backend below.
 uv = "latest"
 
@@ -143,6 +144,11 @@ colima = "latest"
 lima = "latest"
 docker-cli = "latest"
 k9s = "latest"
+# Was pinned to 1.23.14 in a leftover ~/.tool-versions from asdf days. A 1.23
+# client is far outside kubectl's +/-1 minor skew policy against any current
+# cluster, so it tracks latest now; pin it here if a cluster ever needs an older
+# client.
+kubectl = "latest"
 # Two registry entries out of one upstream repo; `kubectx` alone does not
 # provide `kubens`.
 kubectx = "latest"
