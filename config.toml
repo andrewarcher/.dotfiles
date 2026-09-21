@@ -58,9 +58,14 @@ adopt = true
 # Internet file retriever
 "brew:wget" = "latest"
 
-# Menu bar calendar app. Fully-qualified tap name; mise infers the tap's GitHub
-# URL from it, so no `[bootstrap.brew.taps]` entry is needed.
-"brew-cask:pakerwreah/calendr/calendr" = "latest"
+# Menu bar calendar app. The plain token deliberately, not the
+# pakerwreah/calendr tap this used to come from: CalendR is in homebrew/cask
+# now, so it resolves from published API metadata. The tap publishes none, which
+# sent mise to evaluate its Casks/calendr.rb through mise's own Cask DSL shim --
+# needing Ruby 3+ during the packages phase, which is phase 3, long before
+# [tools] install in phase 15. No tool declaration can be early enough, so the
+# fix is to not need one.
+"brew-cask:calendr" = "latest"
 # Utility for customizing which browser to start -- configured by dotfiles/finicky.ts
 "brew-cask:finicky" = "latest"
 # Terminal emulator that uses platform-native UI and GPU acceleration
@@ -151,12 +156,6 @@ ruff = "latest"
 
 ## hooks
 pre-commit = "latest"
-
-## Not used directly. The calendr tap above publishes no Homebrew API metadata,
-## so mise falls back to evaluating the tap's Casks/calendr.rb with its own
-## Cask DSL shim -- which needs Ruby 3+. Without this, every command that
-## inspects `[bootstrap.packages]` fails on that one cask, `status` included.
-ruby = "latest"
 
 ##
 ## everything with no declarative equivalent

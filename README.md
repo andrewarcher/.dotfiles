@@ -86,9 +86,6 @@ keeps working either way. `adopt = true` claims apps already in `/Applications`
 instead of replacing their bundles, which would reset their macOS Privacy &
 Security grants.
 
-`ruby` is in `[tools]` but unused directly — see the comment on it in
-`config.toml`.
-
 Add a tool with `mise use -g <tool>`, or a package with
 `mise bootstrap packages use brew:<formula>`; both edit `config.toml` in place.
 
