@@ -93,6 +93,11 @@ adopt = true
 "brew-cask:linearmouse" = "latest"
 # Adaptive brightness for external displays
 "brew-cask:lunar" = "latest"
+# Browser. Installed by hand before this entry existed, so it has no Homebrew
+# receipt; the cask declares `auto_updates: true`, which means `adopt = true`
+# above records ownership and leaves the bundle alone rather than replacing an
+# app that updates itself. The token is `zen`, not `zen-browser`.
+"brew-cask:zen" = "latest"
 
 ##
 ## vendored checkouts

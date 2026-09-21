@@ -436,6 +436,7 @@ Of the casks in `[bootstrap.packages]`, only some keep config worth versioning:
 | Ghostty     | `~/.config/ghostty/config`               | yes — `dotfiles/ghostty/`   |
 | LinearMouse | `~/.config/linearmouse/linearmouse.json` | yes — `dotfiles/linearmouse/` |
 | Finicky     | `~/.config/finicky.ts`                   | yes — `dotfiles/finicky.ts` |
+| Zen         | profile in `~/Library/Application Support/zen` | no — per-profile state |
 | CalendR     | sandboxed plist, 36 real preferences     | yes — `tasks/calendr-defaults` |
 | Lunar       | `fyi.lunar.Lunar` plist                  | **no — contains secrets**   |
 
@@ -584,6 +585,9 @@ and reports "nothing configured", so removal is
 
 - GUI apps still installed outside this repo (Firefox, Slack, Zoom, Figma,
   Spotify) are not captured — several of these are what `finicky.ts` routes to.
+- `finicky.ts` still sets `defaultBrowser: "Firefox"` even though Zen is now
+  declared and in use. Nothing is broken by that, but unmatched URLs open in
+  Firefox rather than Zen until it is changed.
 - Containers are colima + the docker CLI, both `[tools]` entries. `colima`
   shells out to `limactl`, and nothing declares that for it, so `lima` is
   listed explicitly.
