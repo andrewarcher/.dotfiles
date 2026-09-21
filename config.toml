@@ -146,6 +146,25 @@ FlashDateSeparators = false
 [bootstrap.macos.defaults.NSGlobalDomain]
 AppleICUForce24HourTime = true
 
+# LinearMouse's menu bar item. Its per-device tuning lives in
+# dotfiles/linearmouse/linearmouse.json, which is symlinked, but these are
+# preferences rather than config and have no place in that file.
+#
+# The two mode values are stored JSON-encoded, so the real value includes the
+# quote characters -- `"below10"`, nine bytes, not `below10`. Hence the TOML
+# literal strings below: a basic string would need them escaped, and dropping
+# them leaves a value LinearMouse cannot parse. Checked with `od -c`.
+#
+# LinearMouse is not sandboxed and these are any-host, so mise's defaults writer
+# reaches them and no task is needed, unlike CalendR.
+[bootstrap.macos.defaults."com.lujjjh.LinearMouse"]
+# The master toggle; the two modes below do nothing while this is false.
+showInMenuBar = true
+# Show the icon only when it wants attention, rather than permanently.
+menuBarVisibilityMode = '"whenAttentionNeeded"'
+# Show a connected device's battery only once it drops to 10% or below.
+menuBarBatteryDisplayMode = '"below10"'
+
 # Menu bar layout. Right to left: clock, Control Center, CalendR's date,
 # battery, volume, bluetooth.
 #

@@ -73,7 +73,7 @@ transaction: if a phase fails, earlier changes stay. Fix and re-run.
 | `dotfiles/git/`           | `~/.config/git`           | `config` + global `ignore`           |
 | `dotfiles/ghostty/`       | `~/.config/ghostty`       | terminal                             |
 | `dotfiles/lsd/`           | `~/.config/lsd`           | `ls` replacement — `.zshrc` aliases `ls` to it |
-| `dotfiles/linearmouse/`   | `~/.config/linearmouse`   | per-device mouse/trackpad tuning     |
+| `dotfiles/linearmouse/`   | `~/.config/linearmouse`   | per-device mouse/trackpad tuning; its menu bar options are `[bootstrap.macos.defaults]` |
 | `dotfiles/finicky.ts`     | `~/.config/finicky.ts`    | browser/URL routing                  |
 
 These are `[dotfiles]` entries in symlink mode, so editing the live path edits
