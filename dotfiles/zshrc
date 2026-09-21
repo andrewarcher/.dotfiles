@@ -153,6 +153,17 @@ if (( $+commands[fzf] )); then
     zstyle ':fzf-tab:complete:cd:*' fzf-preview 'lsd -1 --color=always $realpath'
 fi
 
+## lsd - `ls` replacement, configured by ~/.config/lsd/config.yaml
+#
+# Safe to shadow `ls` with: lsd drops colour, icons and its grid layout when
+# stdout is not a tty, so `ls | wc -l` still reports one line per entry exactly
+# as /bin/ls does. Aliases are not expanded in scripts either, so anything
+# non-interactive keeps getting the real ls regardless.
+#
+# Not a complete drop-in: the BSD-only flags -b, -e and -O have no lsd
+# equivalent. `command ls` reaches /bin/ls when one of those is needed.
+(( $+commands[lsd] )) && alias ls=lsd
+
 ## direnv
 (( $+commands[direnv] )) && eval "$(direnv hook zsh)"
 

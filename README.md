@@ -72,7 +72,7 @@ transaction: if a phase fails, earlier changes stay. Fix and re-run.
 | `dotfiles/nvim/`          | `~/.config/nvim`          | `init.lua` + LSP — needs nvim ≥ 0.11 |
 | `dotfiles/git/`           | `~/.config/git`           | `config` + global `ignore`           |
 | `dotfiles/ghostty/`       | `~/.config/ghostty`       | terminal                             |
-| `dotfiles/lsd/`           | `~/.config/lsd`           | `ls` replacement                     |
+| `dotfiles/lsd/`           | `~/.config/lsd`           | `ls` replacement — `.zshrc` aliases `ls` to it |
 | `dotfiles/linearmouse/`   | `~/.config/linearmouse`   | per-device mouse/trackpad tuning     |
 | `dotfiles/finicky.ts`     | `~/.config/finicky.ts`    | browser/URL routing                  |
 
