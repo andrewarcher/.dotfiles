@@ -24,33 +24,37 @@ been set up yet.
 whole install — there is no installer script, and Homebrew does not need to be
 installed first.
 
-### If the first run fails
-
-Bootstrap is a sequence, not a transaction, and `--adopt` clones before it
-applies. So a failed first run still leaves `~/.config/mise` checked out — and a
-second `--adopt` **reuses that checkout without updating it**, silently
-re-running the same commit that just failed. Fix a config bug upstream, then
-either update the checkout first or tell `--adopt` to:
+`--adopt` is only for the first run on a machine. Afterwards this repo *is*
+`~/.config/mise`, so updating it is an ordinary pull:
 
 ```sh
-git -C ~/.config/mise pull --ff-only && mise bootstrap
-# or
-mise bootstrap --adopt https://github.com/andrewarcher/.dotfiles.git --update
+git -C ~/.config/mise pull && mise bootstrap
 ```
 
-`git -C ~/.config/mise log --oneline -1` tells you which commit is actually
-being applied, which is the first thing to check when a fix appears not to have
-taken effect.
+Each phase compares declared state against the machine and changes only what
+differs, so re-running is cheap and safe.
 
-Re-run `mise bootstrap` after every pull; each phase compares declared state
-against the machine and changes only what differs. Useful variants:
+Prefer that over re-running `--adopt --update`, which reaches the same config
+but also fast-forwards every `[bootstrap.repos]` checkout — an unasked-for
+nvim-lspconfig bump — and fails outright if you have local changes in one.
+
+> [!NOTE]
+> A **failed** first run still leaves `~/.config/mise` cloned, because `--adopt`
+> clones before it applies. A second `--adopt` then reuses that checkout
+> *without* updating it, silently re-running the commit that just failed. After
+> fixing a config bug upstream, pull before re-running.
+>
+> `git -C ~/.config/mise log --oneline -1` shows which commit is actually being
+> applied — the first thing to check when a fix appears to have had no effect.
+
+Useful variants:
 
 | Command                                | Does                                             |
 | -------------------------------------- | ------------------------------------------------ |
 | `mise bootstrap status`                 | what every phase would change, without doing it  |
 | `mise bootstrap --dry-run`              | full preview                                     |
 | `mise bootstrap --only dotfiles,tools`  | one or two phases                                |
-| `mise bootstrap --update`               | also refresh package metadata and the repos below |
+| `mise bootstrap --update`               | also refresh package metadata and fast-forward the checkouts below; add `--skip-dirty` if any has local changes |
 | `mise bootstrap --force-dotfiles`       | replace a target that conflicts with its link    |
 
 Phases run in a fixed order: packages → repos → dotfiles → shell activation →
