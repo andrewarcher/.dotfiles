@@ -178,6 +178,206 @@ One TypeScript caveat: `typescript-language-server` needs `typescript`
 resolvable in the workspace. Any repo with it in `devDependencies` works; a bare
 `.ts` file outside a project will not.
 
+## macOS defaults
+
+The menu bar clock is declared in `[bootstrap.macos.defaults]` and applied by
+the macOS-defaults phase of `mise bootstrap`:
+
+| Key                                      | Value   | Effect                           |
+| ---------------------------------------- | ------- | -------------------------------- |
+| `AppleICUForce24HourTime` (NSGlobalDomain) | `true`  | **24-hour clock**              |
+| `ShowSeconds`                            | `true`  | minutes and seconds              |
+| `ShowAMPM`                               | `false` | no AM/PM suffix                  |
+| `ShowDate`                               | `2`     | never — CalendR already shows it |
+| `ShowDayOfWeek`                          | `false` | likewise CalendR's job           |
+| `IsAnalog`                               | `false` | digital                          |
+| `FlashDateSeparators`                    | `false` | no blinking `:`                  |
+
+Result: `14:01:28`. The two menu bar items divide the work — the system clock
+shows the time, CalendR shows the date in the format `calendr/defaults.toml`
+sets.
+
+**`ShowAMPM = false` is not what makes it 24-hour.** That key only decides
+whether an AM/PM suffix is drawn; alone it leaves a 12-hour clock with no way to
+tell 02:00 from 14:00. The switch is `AppleICUForce24HourTime`, which is what
+System Settings › General › Date & Time › "24-hour time" writes. It is
+system-wide, not menu-bar-only — every app's short and medium time formatting
+follows it, and macOS offers no menu-bar-only equivalent.
+
+It has to be declared explicitly because the locale does not imply it:
+`AppleLocale` here is `en_CA`, which formats 12-hour, so without this key a new
+machine comes up showing `2:01:28 PM`.
+
+This domain *can* live here, unlike CalendR's, because it is a plain file in
+`~/Library/Preferences` rather than an app sandbox container — which is exactly
+the distinction that decides whether `[bootstrap.macos.defaults]` works or
+silently writes somewhere nothing reads.
+
+### Menu bar layout
+
+Right to left: **clock, Control Center, CalendR's date, battery, volume,
+bluetooth.**
+
+`NSStatusItem Preferred Position <item>` is points from the right edge, so
+ascending values read right to left:
+
+| Position | Item                        |
+| -------- | --------------------------- |
+| *(none)* | clock — pinned rightmost    |
+| `83`     | Control Center (`BentoBox`) |
+| `125`    | CalendR's date — *not declared, see below* |
+| `218`    | battery                     |
+| `260`    | volume (`Sound`)            |
+| `298`    | bluetooth                   |
+
+The clock has no position key at all: macOS pins it rightmost and it cannot be
+moved. Control Center cannot be moved past it either in practice, so it stays
+where macOS puts it.
+
+**CalendR's slot is deliberately not declared.** That key lives in CalendR's own
+sandboxed domain and `calendr/sync.py` excludes it as machine-specific — these
+are coordinates tuned to one menu bar's particular set of items. On a new
+machine CalendR picks its own slot and may need dragging once. Pinning it would
+mean re-introducing a key documented as excluded, for a value that is unlikely
+to be right elsewhere.
+
+Declaring positions means bootstrap *restores* this order, so an item dragged
+elsewhere moves back on the next run.
+
+Visibility is the **module mode integer** (per-host, needs `-currentHost`).
+Three values are in use, established by changing each item in System Settings ›
+Menu Bar and reading the result back:
+
+| Value | Meaning             | Items here                          |
+| ----- | ------------------- | ----------------------------------- |
+| `18`  | always show         | battery, volume, bluetooth          |
+| `2`   | show when active    | display, focus                      |
+| `8`   | never show          | Wi-Fi                               |
+
+`18` is the canonical always-show value — what the
+[CIS Benchmark for macOS Sonoma](https://www.tenable.com/audits/items/CIS_Apple_macOS_14.0_Sonoma_v1.0.0_L1.audit:bc25d4cb104347ebb162cdabd712d8b7)
+prescribes, and what an MDM `com.apple.controlcenter` payload uses; it also
+confirms `-currentHost` is required for both read and write. Apple documents
+none of them and no published mapping of the rest exists — `nix-darwin` declined
+to model these keys for
+[that reason](https://github.com/nix-darwin/nix-darwin/issues/1721).
+
+Screen Mirroring is deliberately absent: it has no per-host mode key even when
+set to "show when active", which appears to be that mode's default, so there is
+nothing to declare.
+
+**Spotlight is not a Control Center module.** It is drawn by its own process and
+hidden by a legacy per-host key in a different domain entirely:
+
+```toml
+[[bootstrap.macos.defaults_entries]]
+domain = "com.apple.Spotlight"
+key = "MenuItemHidden"
+host = "current"
+value = true
+```
+
+That key was found rather than guessed, by a technique worth reusing for any
+setting whose key is unknown: dump the candidate domains, toggle the item in
+System Settings, then diff.
+
+```sh
+defaults -currentHost read com.apple.Spotlight > before.txt
+# flip the setting in System Settings
+diff before.txt <(defaults -currentHost read com.apple.Spotlight)
+```
+
+That named `MenuItemHidden` immediately, flipping `1` → `0`. It also exposed a
+decoy: enabling Spotlight makes a `Spotlight = 2` key appear under
+`com.apple.controlcenter`, which looks like the obvious lever and is not —
+hiding Spotlight again leaves it sitting at `2`, so it is residue, not state,
+and is not declared.
+
+The only Terminal method published anywhere for this is `chmod 600` on a binary
+inside `/System/Library`, which needs SIP disabled and modifies the OS. It is
+not used here.
+
+**`NSStatusItem Visible <item>`** (any-host, boolean) is *not* a second setting
+to declare alongside the mode. It reads as macOS's record of whether a
+conditional item is showing right now — anything set to always-show has no such
+key at all. It is declared here only for `Shortcuts`, `AirDrop`,
+`MusicRecognition` and `NowPlaying`, which have no mode key of their own, plus
+`BentoBox` for Control Center itself. Pinning it for anything conditional would
+contradict "show when active" the moment the condition fired.
+
+`Battery = 3` and `Bluetooth = 2` were earlier values this machine had drifted
+to through the Control Center UI; both are normalised to `18`. Bluetooth showing
+at `2` is what made these integers look contradictory at first — `2` is "show
+when active", and bluetooth was simply active.
+
+#### Checking what is actually drawn
+
+Stored preferences are not proof that the menu bar looks right. With the
+terminal granted Accessibility access, the drawn items can be read directly:
+
+```sh
+osascript -e 'tell application "System Events" to tell process "ControlCenter" \
+  to get description of every menu bar item of menu bar 1'
+osascript -e 'tell application "System Events" to tell process "ControlCenter" \
+  to get value of attribute "AXPosition" of every menu bar item of menu bar 1'
+```
+
+Descriptions and `AXPosition` come back in the same order, so zipping them and
+sorting by descending *x* gives the menu bar right to left. Currently:
+
+```
+x=3285  Clock
+x=3243  Control Center
+x=3074  Battery
+x=3036  Sound
+x=3004  Bluetooth
+```
+
+Two caveats. Without Accessibility access every item's name reads
+`missing value`, so this needs the grant — a separate one from the Full Disk
+Access that CalendR's settings need. And third-party status items, CalendR's
+included, report `AXPosition` as `{0, 30}`, so they can be *counted* but not
+placed; CalendR's slot between Control Center and the battery can only be
+confirmed by looking. Note also that `name` is empty for these items and
+`description` is the attribute that carries anything useful.
+
+### Battery percentage
+
+`BatteryShowPercentage` shows the battery as a number beside the icon. It is
+declared through the `defaults_entries` array form rather than a domain table,
+because Control Center stores it **per host** — the real file is
+`~/Library/Preferences/ByHost/com.apple.controlcenter.<hardware UUID>.plist`,
+not the any-host `com.apple.controlcenter.plist`:
+
+```toml
+[[bootstrap.macos.defaults_entries]]
+domain = "com.apple.controlcenter"
+key = "BatteryShowPercentage"
+host = "current"
+value = true
+```
+
+`host = "current"` is mise's `defaults -currentHost`, and resolves to whichever
+machine is running bootstrap, so the UUID never appears in the repo. Written to
+the any-host domain instead it would be accepted and ignored — the same class of
+silent miss as writing a sandboxed app's preferences outside its container.
+`mise bootstrap macos defaults status` labels it `(current host)`, which is how
+you can tell the scope was understood.
+
+Apple has relocated this setting before — it was
+`com.apple.menuextra.battery ShowPercent` until Big Sur moved battery into
+Control Center — so it is worth re-checking after a major macOS upgrade. `status`
+reporting `differs` immediately after a clean apply is the signal that the key
+has moved again.
+
+Changes take effect after `killall SystemUIServer ControlCenter`, or a log out.
+That is deliberately not a bootstrap hook: it would restart the menu bar on
+every run to no purpose, since the phase is a no-op once the values are set.
+
+Note when checking your work that the `.plist` on disk lags — cfprefsd caches
+writes and flushes later — so `defaults read com.apple.menuextra.clock` is
+authoritative and reading the file is not.
+
 ## GUI app config
 
 Of the casks in `[bootstrap.packages]`, only some keep config worth versioning:

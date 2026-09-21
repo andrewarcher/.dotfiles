@@ -107,6 +107,209 @@ adopt = true
 "~/.config/finicky.ts" = { source = "dotfiles/finicky.ts" }
 
 ##
+## macOS defaults
+##
+
+# Unlike CalendR's settings, this domain is a plain file in
+# ~/Library/Preferences rather than an app sandbox container, so mise's own
+# defaults writer reaches it and no task is needed. See calendr/sync.py for why
+# a sandboxed app cannot be done this way.
+#
+# The menu bar clock shows the time only: CalendR supplies the date, in the
+# format set by calendr/defaults.toml. Changing anything here takes effect after
+# `killall SystemUIServer ControlCenter` or a log out -- deliberately not a
+# bootstrap hook, which would restart the menu bar on every run.
+[bootstrap.macos.defaults."com.apple.menuextra.clock"]
+# 0 shows the date when there is room, 1 always, 2 never. Never, because CalendR
+# already shows it and two dates in one menu bar is one too many.
+ShowDate = 2
+ShowDayOfWeek = false
+# Minutes and seconds, 24-hour. The 24-hour switch itself is the NSGlobalDomain
+# key below, not this one -- ShowAMPM only decides whether an AM/PM suffix is
+# drawn, so on its own it would leave a 12-hour clock with no way to tell 2am
+# from 2pm. Under forced 24-hour it is inert; false states the intent and stops
+# AM/PM reappearing if the clock ever went back to 12-hour.
+ShowSeconds = true
+ShowAMPM = false
+# Digital, and no blinking ":" between the digits.
+IsAnalog = false
+FlashDateSeparators = false
+
+# The actual 24-hour clock, and what System Settings > General > Date & Time >
+# "24-hour time" writes. It is system-wide rather than menu-bar-only: every
+# app's short and medium time formatting follows it. macOS offers no menu-bar-
+# only equivalent.
+#
+# It has to be declared because the locale does not imply it -- AppleLocale here
+# is en_CA, which formats 12-hour by default, so without this a new machine
+# comes up showing "2:00:47 PM".
+[bootstrap.macos.defaults.NSGlobalDomain]
+AppleICUForce24HourTime = true
+
+# Menu bar layout. Right to left: clock, Control Center, CalendR's date,
+# battery, volume, bluetooth.
+#
+# `NSStatusItem Preferred Position <item>` is points from the right edge, so
+# ascending values read right to left. The clock has no position key at all --
+# macOS pins it rightmost and it cannot be moved, which is the answer to
+# whether Control Center can be reordered past it: it cannot either, in
+# practice, so it sits where macOS puts it at 83.
+#
+# CalendR's date sits between Control Center and the battery, at 125. Its slot
+# is deliberately *not* declared: that key lives in CalendR's own sandboxed
+# domain and is excluded by calendr/sync.py as machine-specific, since these
+# are coordinates tuned to one menu bar's set of items. On a new machine
+# CalendR picks its own slot and may need dragging once.
+#
+# Declaring positions means bootstrap restores this order, so an item dragged
+# somewhere else moves back on the next run. That is the intent here; the
+# alternative is not declaring them and accepting whatever each machine does.
+[bootstrap.macos.defaults."com.apple.controlcenter"]
+# Control Center itself, immediately left of the clock. Both keys, because
+# macOS writes the suffixed one too.
+"NSStatusItem Preferred Position BentoBox" = 83.0
+"NSStatusItem Preferred Position BentoBox-0" = 83.0
+"NSStatusItem Preferred Position Battery" = 218.0
+"NSStatusItem Preferred Position Sound" = 260.0
+"NSStatusItem Preferred Position Bluetooth" = 298.0
+"NSStatusItem Visible BentoBox" = true
+
+# Shortcuts has no module mode of its own, so this flag is the only lever for it.
+#
+# AirDrop, Now Playing and Music Recognition used to be listed here too. They
+# are hidden by their mode below instead, which is the actual mechanism; the
+# flag only recorded that they were already hidden. FocusModes and
+# ScreenMirroring were pinned false here as well, which was worse than
+# redundant: both are "show when active", so a false pin would have fought the
+# moment either condition fired. The flag reads as macOS's record of whether a
+# conditional item is showing right now -- everything set to always-show has no
+# such key at all -- so it is left to macOS except where nothing else works.
+"NSStatusItem Visible Shortcuts" = false
+
+# The module modes these items run in. Per host, like the battery percentage
+# below -- `defaults -currentHost` is required to read or write them, which the
+# CIS Benchmark for macOS Sonoma also specifies.
+#
+# The three values in use here, settled by reading them back after changing each
+# item in System Settings > Menu Bar:
+#
+#   18  always show in the menu bar
+#    2  show when active
+#    8  never show
+#
+# 18 is the canonical always-show value -- what the CIS benchmark prescribes for
+# Bluetooth and what an MDM com.apple.controlcenter payload uses. Apple
+# documents none of them, and no published mapping of the remaining values
+# exists; nix-darwin declined to model these keys for that reason. 2 is why
+# bluetooth appeared to contradict the earlier reading of these numbers: it was
+# "show when active" and bluetooth was simply active.
+#
+# This machine had arrived at Battery = 3 and Bluetooth = 2 through the
+# Control Center UI. Both displayed, but they look like residue of particular
+# UI interactions rather than values worth reproducing, so both are normalised
+# to 18. Verified by setting them, restarting Control Center and reading the
+# drawn items back through the accessibility API: the same five items in the
+# same order, with the battery percentage intact.
+#
+# Screen Mirroring is absent from this list deliberately: it has no per-host
+# mode key even after being set to "show when active", so there is nothing to
+# declare. It appears to be that mode's default.
+[[bootstrap.macos.defaults_entries]]
+domain = "com.apple.controlcenter"
+key = "Battery"
+host = "current"
+value = 18
+
+[[bootstrap.macos.defaults_entries]]
+domain = "com.apple.controlcenter"
+key = "Sound"
+host = "current"
+value = 18
+
+[[bootstrap.macos.defaults_entries]]
+domain = "com.apple.controlcenter"
+key = "Bluetooth"
+host = "current"
+value = 18
+
+# Shown only while in use, rather than permanently.
+[[bootstrap.macos.defaults_entries]]
+domain = "com.apple.controlcenter"
+key = "Display"
+host = "current"
+value = 2
+
+[[bootstrap.macos.defaults_entries]]
+domain = "com.apple.controlcenter"
+key = "FocusModes"
+host = "current"
+value = 2
+
+# Explicitly never shown.
+[[bootstrap.macos.defaults_entries]]
+domain = "com.apple.controlcenter"
+key = "WiFi"
+host = "current"
+value = 8
+
+# Spotlight's magnifying glass. Not a Control Center module at all: it is drawn
+# by its own process and controlled by this legacy per-host key, where true
+# hides it. Found by snapshotting preferences, toggling the item in System
+# Settings > Menu Bar, and diffing -- `MenuItemHidden` was the key that tracked
+# the change, flipping 1 -> 0 as it appeared.
+#
+# Enabling it also made a `Spotlight = 2` key appear under
+# com.apple.controlcenter, but that one is not the lever: hiding Spotlight again
+# left it sitting at 2 regardless, so it is residue rather than state and is not
+# declared here.
+#
+# Unverifiable from a shell, unlike the Control Center items: Spotlight's menu
+# bar items report an AXPosition of {0, 30} whether shown or hidden, the same as
+# third-party status items.
+[[bootstrap.macos.defaults_entries]]
+domain = "com.apple.Spotlight"
+key = "MenuItemHidden"
+host = "current"
+value = true
+
+[[bootstrap.macos.defaults_entries]]
+domain = "com.apple.controlcenter"
+key = "AirDrop"
+host = "current"
+value = 8
+
+[[bootstrap.macos.defaults_entries]]
+domain = "com.apple.controlcenter"
+key = "NowPlaying"
+host = "current"
+value = 8
+
+[[bootstrap.macos.defaults_entries]]
+domain = "com.apple.controlcenter"
+key = "MusicRecognition"
+host = "current"
+value = 8
+
+# Battery percentage as a number beside the menu bar icon.
+#
+# This one needs the `defaults_entries` array form rather than a
+# `[bootstrap.macos.defaults."domain"]` table, because Control Center stores it
+# per host: the real file is
+# ~/Library/Preferences/ByHost/com.apple.controlcenter.<hardware UUID>.plist,
+# not the any-host com.apple.controlcenter.plist. `host = "current"` is mise's
+# equivalent of `defaults -currentHost`, and resolves to whichever machine is
+# running bootstrap, so the UUID never needs naming here.
+#
+# Writing it to the any-host domain instead would be accepted and ignored --
+# the same class of silent miss as writing a sandboxed app's prefs outside its
+# container.
+[[bootstrap.macos.defaults_entries]]
+domain = "com.apple.controlcenter"
+key = "BatteryShowPercentage"
+host = "current"
+value = true
+
+##
 ## tools
 ##
 
