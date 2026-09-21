@@ -24,6 +24,24 @@ been set up yet.
 whole install — there is no installer script, and Homebrew does not need to be
 installed first.
 
+### If the first run fails
+
+Bootstrap is a sequence, not a transaction, and `--adopt` clones before it
+applies. So a failed first run still leaves `~/.config/mise` checked out — and a
+second `--adopt` **reuses that checkout without updating it**, silently
+re-running the same commit that just failed. Fix a config bug upstream, then
+either update the checkout first or tell `--adopt` to:
+
+```sh
+git -C ~/.config/mise pull --ff-only && mise bootstrap
+# or
+mise bootstrap --adopt https://github.com/andrewarcher/.dotfiles.git --update
+```
+
+`git -C ~/.config/mise log --oneline -1` tells you which commit is actually
+being applied, which is the first thing to check when a fix appears not to have
+taken effect.
+
 Re-run `mise bootstrap` after every pull; each phase compares declared state
 against the machine and changes only what differs. Useful variants:
 
