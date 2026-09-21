@@ -585,9 +585,15 @@ and reports "nothing configured", so removal is
 
 - GUI apps still installed outside this repo (Firefox, Slack, Zoom, Figma,
   Spotify) are not captured — several of these are what `finicky.ts` routes to.
-- `finicky.ts` still sets `defaultBrowser: "Firefox"` even though Zen is now
-  declared and in use. Nothing is broken by that, but unmatched URLs open in
-  Firefox rather than Zen until it is changed.
+- `finicky.ts` sends unmatched URLs to Zen, by bundle id
+  (`app.zen-browser.zen`) rather than name: the bundle is called "Zen Browser"
+  while the app on disk is `Zen.app`, so a name lookup has to pick one. Firefox
+  and Firefox Developer Edition are both installed but neither is the default.
+- A self-updating cask's version in `mise bootstrap packages status` is the one
+  in **mise's receipt**, not the live app's. Firefox Developer Edition reports
+  `157.0b4` while the installed app is `157.0`, and that is expected rather than
+  drift to correct — `auto_updates` casks are recorded once and left to update
+  themselves.
 - Containers are colima + the docker CLI, both `[tools]` entries. `colima`
   shells out to `limactl`, and nothing declares that for it, so `lima` is
   listed explicitly.

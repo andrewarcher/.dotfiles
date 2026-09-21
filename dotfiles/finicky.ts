@@ -55,7 +55,10 @@ const rwGoogleZoomLinks = {
 };
 
 export default {
-  defaultBrowser: "Firefox",
+  // Bundle id rather than the app name: the bundle is "Zen Browser" but the app
+  // on disk is Zen.app, and a name lookup has to pick one. This is the same
+  // reason the zoom handler below uses us.zoom.xos.
+  defaultBrowser: "app.zen-browser.zen",
   handlers: [
     {
       match: isZoom,
