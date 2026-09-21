@@ -493,8 +493,44 @@ public), the security-scoped bookmark blobs, `disabled_calendars` (account
 UUIDs), and the `NSStatusItem` menu bar coordinates. Those keys stay whatever
 the app makes them.
 
-Lunar and LinearMouse start at login as legacy login items, which have no
-plain-file equivalent — enable those by hand in each app.
+### Starting apps at login
+
+LinearMouse is started by a LaunchAgent declared in
+`[bootstrap.macos.launchd.agents]`, which `mise bootstrap` writes to
+`~/Library/LaunchAgents/dev.mise.linearmouse.plist` and loads:
+
+```toml
+[bootstrap.macos.launchd.agents.linearmouse]
+program = "/usr/bin/open"
+args = ["-a", "/Applications/LinearMouse.app"]
+run_at_load = true
+```
+
+Neither obvious alternative works. **LinearMouse has no preference for this** —
+its only related key is `LaunchAtLogin__hasMigrated`, a migration marker,
+because it registers through `SMAppService` and that state lives in the system's
+BTM database, which is SIP-protected. CalendR is the same, which is why
+`~/Library/LaunchAgents` is otherwise empty even though both apps start at login
+here. And `osascript … make login item` needs Automation permission for System
+Events at bootstrap time, which a fresh machine has not granted — the same wall
+as CalendR's settings.
+
+`open -a` rather than the binary inside the bundle, so macOS launches it as a
+proper application; it exits once the app is up, which is why there is no
+`keep_alive`. This starts LinearMouse, it does not supervise it. Running
+alongside the app's own SMAppService registration is harmless: `open -a` on a
+running app activates it rather than starting a second copy.
+
+Check it with `launchctl print gui/$UID/dev.mise.linearmouse`, or test it
+without rebooting:
+
+```sh
+osascript -e 'quit app "LinearMouse"'
+launchctl kickstart gui/$UID/dev.mise.linearmouse
+```
+
+**Lunar** is still a manual login item — enable it in the app. The same agent
+pattern would work if it is worth declaring.
 
 ## Notes
 

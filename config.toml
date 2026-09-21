@@ -310,6 +310,32 @@ host = "current"
 value = true
 
 ##
+## login items
+##
+
+# Start LinearMouse at login.
+#
+# It has no preference to set for this: its only related key is
+# `LaunchAtLogin__hasMigrated`, a migration marker, because it registers through
+# SMAppService and that state lives in the system's BTM database -- SIP
+# protected, so not something bootstrap can write. CalendR is the same, which is
+# why ~/Library/LaunchAgents is empty despite both apps starting at login here.
+#
+# The other route, `osascript ... make login item`, needs Automation permission
+# for System Events at bootstrap time, which a fresh machine has not granted --
+# the same wall as CalendR's settings. A LaunchAgent needs no such permission,
+# is declared here rather than inferred from the app, and can be inspected with
+# `launchctl print gui/$UID/dev.mise.linearmouse`.
+#
+# `open -a` rather than the binary inside the bundle, so macOS launches it as a
+# proper application. It exits as soon as the app is up, which is why there is
+# no keep_alive: this starts LinearMouse, it does not supervise it.
+[bootstrap.macos.launchd.agents.linearmouse]
+program = "/usr/bin/open"
+args = ["-a", "/Applications/LinearMouse.app"]
+run_at_load = true
+
+##
 ## tools
 ##
 
