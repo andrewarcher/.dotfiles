@@ -495,48 +495,41 @@ the app makes them.
 
 ### Starting apps at login
 
-LinearMouse and Lunar are started by LaunchAgents declared in
-`[bootstrap.macos.launchd.agents]`, which `mise bootstrap` writes to
-`~/Library/LaunchAgents/dev.mise.<name>.plist` and loads:
+LinearMouse and Lunar are added to macOS's ordinary **Open at Login** list by
+`tasks/login-items`, which `[tasks.bootstrap]` depends on. It also opens each
+one, so bootstrap leaves a usable machine rather than one that needs a logout.
 
-```toml
-[bootstrap.macos.launchd.agents.linearmouse]
-program = "/usr/bin/open"
-args = ["-a", "/Applications/LinearMouse.app"]
-run_at_load = true
+Neither app has a preference for this — LinearMouse's only related key is
+`LaunchAtLogin__hasMigrated`, and Lunar has nothing beyond launch counters,
+because both register through `SMAppService` and that state lives in the
+system's SIP-protected BTM database. CalendR is the same, which is why its own
+task has to launch the app for `launch_agent_enabled` to take effect.
 
-[bootstrap.macos.launchd.agents.lunar]
-program = "/usr/bin/open"
-args = ["-a", "/Applications/Lunar.app"]
-run_at_load = true
-```
+A `[bootstrap.macos.launchd.agents]` LaunchAgent also works and needs no
+permission, and was tried first. It is the wrong tool: a LaunchAgent is a
+*background item*, so macOS raises **"Software from &lt;developer&gt; can run in
+the background"** on every new machine — naming a person rather than an app,
+which is alarming with no context. These are not background services, they are
+apps that should open at login.
 
-Neither obvious alternative works. **Neither app has a preference for this** —
-LinearMouse's only related key is `LaunchAtLogin__hasMigrated`, a migration
-marker, and Lunar has nothing beyond launch counters; both register through
-`SMAppService`, and that state lives in the system's BTM database, which is
-SIP-protected. CalendR is the same, which is why `~/Library/LaunchAgents` held
-nothing even though all three start at login here. And `osascript … make login
-item` needs Automation permission for System Events at bootstrap time, which a
-fresh machine has not granted — the same wall as CalendR's settings.
+Two properties make the login-items list safe to drive from a script:
 
-`open -a` rather than the binary inside the bundle, so macOS launches it as a
-proper application; it exits once the app is up, which is why there is no
-`keep_alive`. This starts LinearMouse, it does not supervise it. Running
-alongside the app's own SMAppService registration is harmless: `open -a` on a
-running app activates it rather than starting a second copy.
-
-Check either with `launchctl print gui/$UID/dev.mise.<name>`, or test one
-without rebooting:
+- **Idempotent.** System Events matches on path, so re-adding an existing entry
+  leaves one entry, not two. Verified across three runs.
+- **Failure is contained.** Talking to System Events needs Automation consent
+  for whatever runs bootstrap, granted by clicking Allow once. An unattended run
+  has nobody to click it, so a refusal warns and leaves the exit status alone —
+  `[tasks.bootstrap]` depends on this task and failing would abort everything
+  after it.
 
 ```sh
-osascript -e 'quit app "Lunar"'
-launchctl kickstart gui/$UID/dev.mise.lunar
+mise run login-items    # re-run after granting Automation consent
 ```
 
-Starting Lunar this way touches none of its preferences, so the Paddle licence
-token and `apiKey` noted above stay out of the repo — the agent only says which
-app to open.
+If a LaunchAgent is ever genuinely wanted for something, note that mise's
+launchd support is apply-only: deleting the declaration leaves the plist loaded
+and reports "nothing configured", so removal is
+`launchctl bootout gui/$UID/dev.mise.<name>` plus deleting the file by hand.
 
 ## Notes
 

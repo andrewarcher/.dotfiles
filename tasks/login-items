@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+#MISE description="Open LinearMouse and Lunar at login, and start them now"
+set -euo pipefail
+
+# Apps that should start at login, as ordinary "Open at Login" entries.
+#
+# Neither has a preference for this -- LinearMouse's only related key is
+# `LaunchAtLogin__hasMigrated` and Lunar has nothing beyond launch counters,
+# because both register through SMAppService and that state lives in the
+# system's SIP-protected BTM database.
+#
+# A `[bootstrap.macos.launchd.agents]` LaunchAgent also works and needs no
+# permission, but it registers a *background item*, so macOS raises "Software
+# from <developer> can run in the background" on every new machine -- naming a
+# person rather than an app, which is alarming out of context. These are not
+# background services, they are apps that should open at login, so this uses the
+# list macOS itself uses for that and stays out of Background Task Management.
+#
+# Adding is idempotent: System Events matches on path, so re-adding an existing
+# entry leaves one entry rather than two.
+APPS=(
+  /Applications/LinearMouse.app
+  /Applications/Lunar.app
+)
+
+[[ "$(uname -s)" == "Darwin" ]] || { echo "not macOS, skipping login items" >&2; exit 0; }
+
+# Talking to System Events needs Automation consent for whatever is running
+# bootstrap. It is granted by clicking Allow on a prompt, once, rather than dug
+# out of System Settings -- but an unattended run has nobody to click it, and
+# this is cosmetic next to the rest of a machine setup. So a refusal warns and
+# leaves the exit status alone: `[tasks.bootstrap]` depends on this task, and
+# failing would abort everything after it.
+add_login_item() {
+  local app="$1" name
+  name="$(basename "${app%.app}")"
+
+  if [[ ! -d "${app}" ]]; then
+    echo "${name} is not installed, skipping" >&2
+    return 0
+  fi
+
+  if ! osascript -e "tell application \"System Events\" to make login item at end \
+        with properties {path:\"${app}\", hidden:false}" >/dev/null 2>&1; then
+    echo "could not add ${name} to login items." >&2
+    echo "  Allow the terminal to control System Events when macOS asks, then" >&2
+    echo "  re-run: mise run login-items" >&2
+    return 1
+  fi
+
+  echo "${name} opens at login"
+
+  # Adding the entry only takes effect at the next login. Starting it now means
+  # bootstrap leaves a usable machine. `open -a` activates an already-running
+  # copy, so this is safe to repeat.
+  open -a "${app}" && echo "  and started it"
+}
+
+failed=0
+for app in "${APPS[@]}"; do
+  add_login_item "${app}" || failed=1
+done
+
+if (( failed )); then
+  echo "some login items were not set; see above" >&2
+fi
+exit 0

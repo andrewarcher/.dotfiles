@@ -310,38 +310,6 @@ host = "current"
 value = true
 
 ##
-## login items
-##
-
-# Start LinearMouse and Lunar at login.
-#
-# Neither has a preference to set for this. LinearMouse's only related key is
-# `LaunchAtLogin__hasMigrated`, a migration marker, and Lunar has nothing beyond
-# launch counters; both register through SMAppService, whose state lives in the
-# system's BTM database -- SIP protected, so not something bootstrap can write.
-# CalendR is the same, which is why ~/Library/LaunchAgents held nothing despite
-# all three starting at login here.
-#
-# The other route, `osascript ... make login item`, needs Automation permission
-# for System Events at bootstrap time, which a fresh machine has not granted --
-# the same wall as CalendR's settings. A LaunchAgent needs no such permission,
-# is declared here rather than inferred from the app, and can be inspected with
-# `launchctl print gui/$UID/dev.mise.linearmouse`.
-#
-# `open -a` rather than the binary inside the bundle, so macOS launches it as a
-# proper application. It exits as soon as the app is up, which is why there is
-# no keep_alive: this starts LinearMouse, it does not supervise it.
-[bootstrap.macos.launchd.agents.linearmouse]
-program = "/usr/bin/open"
-args = ["-a", "/Applications/LinearMouse.app"]
-run_at_load = true
-
-[bootstrap.macos.launchd.agents.lunar]
-program = "/usr/bin/open"
-args = ["-a", "/Applications/Lunar.app"]
-run_at_load = true
-
-##
 ## tools
 ##
 
@@ -404,10 +372,12 @@ pre-commit = "latest"
 
 [tasks.bootstrap]
 description = "Machine setup that no bootstrap section covers"
-# tasks/calendr-defaults writes CalendR's preferences. It is a task rather than
-# a `[bootstrap.macos.defaults]` block because CalendR is sandboxed -- see the
-# comment at the top of that file.
-depends = ["calendr-defaults"]
+# Both are tasks rather than declarative blocks, for reasons in the comment at
+# the top of each: CalendR's settings because it is sandboxed and mise's
+# defaults writer cannot reach its container, and the login items because macOS
+# has no preference for them and a LaunchAgent would register a background item
+# instead of an "Open at Login" entry.
+depends = ["calendr-defaults", "login-items"]
 run = """
 # dotfiles/zshrc points LESSHISTFILE inside this directory; less will not
 # create the parent itself.
