@@ -7,7 +7,21 @@ file covering packages, dotfile links, vendored checkouts, and tools.
 
 ## Bootstrap
 
-On a fresh machine, with git available (Xcode's command line tools are enough):
+### First, by hand
+
+Three things bootstrap cannot do for itself. Do them in this order:
+
+1. **Sign in to iCloud** — System Settings › Apple Account. Everything below
+   that touches the App Store depends on it.
+2. **Open the App Store** and check you are signed in. `mas` drives the store
+   rather than replacing it, so the `mas:` packages only install for apps
+   already in this Apple ID's purchase history — Bitwarden included. Opening it
+   once is also what settles the sign-in that a fresh install leaves half-done.
+3. **Make `git` available.** Xcode's command line tools are enough; running
+   `git --version` prompts to install them if they are missing. `--adopt` clones
+   this repo, so nothing works without it.
+
+### Then
 
 ```sh
 curl https://mise.run | sh
