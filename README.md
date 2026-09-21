@@ -99,6 +99,41 @@ Activation is deliberately split:
 - `~/.zshrc` runs `mise activate zsh`, which puts **resolved tool paths ahead
   of the shims** and exports mise's env vars, which shims alone do not do.
 
+### Mac App Store apps
+
+Bitwarden is declared as an App Store app rather than a Homebrew cask:
+
+```toml
+[bootstrap.packages]
+"mas:1352778147" = "latest"
+```
+
+The number is the App Store's ADAM id, which `mas list` prints alongside each
+installed app. `brew-cask:bitwarden` exists and would be simpler, but the cask
+is a different build of the same app: with `adopt = true` mise would either
+refuse it or replace `/Applications/Bitwarden.app`, resetting that app's Privacy
+& Security grants and ending its App Store updates.
+
+This needs the [`mas`](https://github.com/mas-cli/mas) CLI, and **declaring it
+in `[tools]` is not enough** — `mas:` packages are resolved in the packages
+phase, which is phase 3, while `[tools]` installs at phase 15. mise's own docs
+say so explicitly. Hence:
+
+```toml
+[bootstrap.hooks]
+pre-packages = "mise install mas"
+```
+
+That is the same phase-ordering trap that made an earlier attempt to declare
+`ruby` for the calendr cask fail on a new machine. There the fix was to stop
+needing ruby; a `mas:` package genuinely cannot work without the CLI, so it gets
+installed early instead. Hooks run on every bootstrap and `mise install mas` is
+a no-op once present.
+
+Two limits worth knowing before adding more App Store apps: `mas install` only
+works for apps already in the signed-in Apple ID's purchase history, and App
+Store apps update themselves, so `latest` here means "present", not "current".
+
 Homebrew keeps only what mise has no backend for — `git`, `htop`, `watch`,
 `wget` and the five GUI casks. Those stay in `[bootstrap.packages]`, and mise
 pours the bottles and casks into `/opt/homebrew` itself: it never shells out to

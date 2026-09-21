@@ -41,6 +41,18 @@ zprofile = "shims"
 # Only things mise has no tool backend for belong here. Anything with a backend
 # goes in `[tools]` so projects can override its version.
 
+# `mas:` packages need the mas CLI during the packages phase, which is phase 3 --
+# long before `[tools]` installs at phase 15. mise's own docs are explicit that
+# declaring mas in `[tools]` is not enough for a fresh bootstrap, so install it
+# here first. Hooks run every time, and `mise install mas` is a no-op once it is
+# present.
+#
+# This is the same ordering trap that made an earlier attempt to declare ruby
+# for the calendr cask fail on a new machine; there the fix was to stop needing
+# ruby at all, but a `mas:` package genuinely cannot work without the CLI.
+[bootstrap.hooks]
+pre-packages = "mise install mas"
+
 [bootstrap.brew]
 # Claim the apps already installed on this machine instead of replacing their
 # bundles. Replacing an .app resets its macOS Privacy & Security grants
@@ -57,6 +69,13 @@ adopt = true
 "brew:watch" = "latest"
 # Internet file retriever
 "brew:wget" = "latest"
+
+# Bitwarden, kept as the Mac App Store copy it already is rather than moved to
+# the Homebrew cask. The cask is a different build, so with `adopt = true` above
+# mise would either refuse it or replace /Applications/Bitwarden.app -- resetting
+# the app's Privacy & Security grants and ending its App Store updates. The ID
+# is the App Store's ADAM id; `mas list` prints it.
+"mas:1352778147" = "latest"
 
 # Menu bar calendar app. The plain token deliberately, not the
 # pakerwreah/calendr tap this used to come from: CalendR is in homebrew/cask
@@ -349,6 +368,10 @@ uv = "latest"
 
 ## shell and CLI
 direnv = "latest"
+# The Mac App Store CLI, needed by the `mas:` package below rather than used
+# directly. See the comment on that package for why it is also installed from a
+# pre-packages hook.
+mas = "latest"
 # Used by dotfiles/zshrc for FZF_DEFAULT_COMMAND. The old Brewfile never
 # installed it, so that setting was silently broken on a fresh machine.
 fd = "latest"
