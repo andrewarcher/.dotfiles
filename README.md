@@ -495,25 +495,30 @@ the app makes them.
 
 ### Starting apps at login
 
-LinearMouse is started by a LaunchAgent declared in
+LinearMouse and Lunar are started by LaunchAgents declared in
 `[bootstrap.macos.launchd.agents]`, which `mise bootstrap` writes to
-`~/Library/LaunchAgents/dev.mise.linearmouse.plist` and loads:
+`~/Library/LaunchAgents/dev.mise.<name>.plist` and loads:
 
 ```toml
 [bootstrap.macos.launchd.agents.linearmouse]
 program = "/usr/bin/open"
 args = ["-a", "/Applications/LinearMouse.app"]
 run_at_load = true
+
+[bootstrap.macos.launchd.agents.lunar]
+program = "/usr/bin/open"
+args = ["-a", "/Applications/Lunar.app"]
+run_at_load = true
 ```
 
-Neither obvious alternative works. **LinearMouse has no preference for this** —
-its only related key is `LaunchAtLogin__hasMigrated`, a migration marker,
-because it registers through `SMAppService` and that state lives in the system's
-BTM database, which is SIP-protected. CalendR is the same, which is why
-`~/Library/LaunchAgents` is otherwise empty even though both apps start at login
-here. And `osascript … make login item` needs Automation permission for System
-Events at bootstrap time, which a fresh machine has not granted — the same wall
-as CalendR's settings.
+Neither obvious alternative works. **Neither app has a preference for this** —
+LinearMouse's only related key is `LaunchAtLogin__hasMigrated`, a migration
+marker, and Lunar has nothing beyond launch counters; both register through
+`SMAppService`, and that state lives in the system's BTM database, which is
+SIP-protected. CalendR is the same, which is why `~/Library/LaunchAgents` held
+nothing even though all three start at login here. And `osascript … make login
+item` needs Automation permission for System Events at bootstrap time, which a
+fresh machine has not granted — the same wall as CalendR's settings.
 
 `open -a` rather than the binary inside the bundle, so macOS launches it as a
 proper application; it exits once the app is up, which is why there is no
@@ -521,16 +526,17 @@ proper application; it exits once the app is up, which is why there is no
 alongside the app's own SMAppService registration is harmless: `open -a` on a
 running app activates it rather than starting a second copy.
 
-Check it with `launchctl print gui/$UID/dev.mise.linearmouse`, or test it
+Check either with `launchctl print gui/$UID/dev.mise.<name>`, or test one
 without rebooting:
 
 ```sh
-osascript -e 'quit app "LinearMouse"'
-launchctl kickstart gui/$UID/dev.mise.linearmouse
+osascript -e 'quit app "Lunar"'
+launchctl kickstart gui/$UID/dev.mise.lunar
 ```
 
-**Lunar** is still a manual login item — enable it in the app. The same agent
-pattern would work if it is worth declaring.
+Starting Lunar this way touches none of its preferences, so the Paddle licence
+token and `apiKey` noted above stay out of the repo — the agent only says which
+app to open.
 
 ## Notes
 

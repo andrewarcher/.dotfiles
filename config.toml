@@ -313,13 +313,14 @@ value = true
 ## login items
 ##
 
-# Start LinearMouse at login.
+# Start LinearMouse and Lunar at login.
 #
-# It has no preference to set for this: its only related key is
-# `LaunchAtLogin__hasMigrated`, a migration marker, because it registers through
-# SMAppService and that state lives in the system's BTM database -- SIP
-# protected, so not something bootstrap can write. CalendR is the same, which is
-# why ~/Library/LaunchAgents is empty despite both apps starting at login here.
+# Neither has a preference to set for this. LinearMouse's only related key is
+# `LaunchAtLogin__hasMigrated`, a migration marker, and Lunar has nothing beyond
+# launch counters; both register through SMAppService, whose state lives in the
+# system's BTM database -- SIP protected, so not something bootstrap can write.
+# CalendR is the same, which is why ~/Library/LaunchAgents held nothing despite
+# all three starting at login here.
 #
 # The other route, `osascript ... make login item`, needs Automation permission
 # for System Events at bootstrap time, which a fresh machine has not granted --
@@ -333,6 +334,11 @@ value = true
 [bootstrap.macos.launchd.agents.linearmouse]
 program = "/usr/bin/open"
 args = ["-a", "/Applications/LinearMouse.app"]
+run_at_load = true
+
+[bootstrap.macos.launchd.agents.lunar]
+program = "/usr/bin/open"
+args = ["-a", "/Applications/Lunar.app"]
 run_at_load = true
 
 ##
