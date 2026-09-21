@@ -98,6 +98,12 @@ adopt = true
 # above records ownership and leaves the bundle alone rather than replacing an
 # app that updates itself. The token is `zen`, not `zen-browser`.
 "brew-cask:zen" = "latest"
+# Firefox Developer Edition, kept around rather than used by default -- finicky
+# sends unmatched URLs to Zen. Also hand-installed, and also self-updating: the
+# installed 157.0 and the cask's 157.0b4 already disagree, which `auto_updates`
+# makes fine. mise adopts a self-updating app as-is precisely because its
+# version is expected to have moved on.
+"brew-cask:firefox@developer-edition" = "latest"
 
 ##
 ## vendored checkouts
