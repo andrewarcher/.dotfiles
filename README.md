@@ -545,9 +545,10 @@ the app makes them.
 
 ### Starting apps at login
 
-LinearMouse and Lunar are added to macOS's ordinary **Open at Login** list by
-`tasks/login-items`, which `[tasks.bootstrap]` depends on. It also opens each
-one, so bootstrap leaves a usable machine rather than one that needs a logout.
+Finicky, LinearMouse and Lunar are added to macOS's ordinary **Open at Login**
+list by `tasks/login-items`, which `[tasks.bootstrap]` depends on. It also opens
+each one with `open -gj`, so bootstrap leaves a usable machine without taking
+focus or putting a window in front of whatever you were doing.
 
 Neither app has a preference for this — LinearMouse's only related key is
 `LaunchAtLogin__hasMigrated`, and Lunar has nothing beyond launch counters,
@@ -561,6 +562,24 @@ permission, and was tried first. It is the wrong tool: a LaunchAgent is a
 the background"** on every new machine — naming a person rather than an app,
 which is alarming with no context. These are not background services, they are
 apps that should open at login.
+
+#### Starting collapsed to the menu bar
+
+Nothing to configure, as it turns out. All of `Finicky`, `LinearMouse`, `Lunar`
+and `CalendR` are `LSUIElement` apps — no dock icon, no window, menu bar only —
+so they can only start collapsed.
+
+The login item `hidden` property looks like the lever for this and is not: on
+macOS 26 it reads back `false` however it is written — passed at creation,
+assigned afterwards, or set by deleting and re-adding the entry. Worth knowing
+before spending time on it.
+
+**Bitwarden** is the one app here with a real window, and it is deliberately not
+in that task: it already manages itself, with `openAtLogin`, `startToTray` and
+`runInBackground` all true in its own settings inside its App Store sandbox
+container. A second login item would only duplicate what it already does. Those
+settings are not versioned — the file holding them also holds vault metadata,
+and this repo is public.
 
 Two properties make the login-items list safe to drive from a script:
 
