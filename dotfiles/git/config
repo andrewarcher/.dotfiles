@@ -10,3 +10,15 @@
     l = log --format=oneLineDate
     web = "!open \"$(git remote get-url origin | sed -E 's_^ssh://git@_https://_; s_^git@(.*):_https://\\1/_; s/\\.git$//')\""
     repull = "!git reset --hard origin/$(git branch --show-current)"
+[gpg]
+	format = ssh
+[user]
+	name = Andrew
+	email = andrew@dev.local
+	# A leading ~ is expanded for path-valued config; $HOME is not -- git takes
+	# the value literally and commits fail with "Couldn't load public key
+	# $HOME/.ssh/...". So this is the portable spelling, and it keeps a username
+	# out of a public repo.
+	signingkey = ~/.ssh/id_ed25519.pub
+[commit]
+	gpgsign = true
