@@ -51,7 +51,9 @@ zprofile = "shims"
 # for the calendr cask fail on a new machine; there the fix was to stop needing
 # ruby at all, but a `mas:` package genuinely cannot work without the CLI.
 [bootstrap.hooks]
-pre-packages = "mise install mas"
+# The SSH key step runs first and ahead of mas, since it may prompt -- see the
+# comment at the top of tasks/ssh-key.
+pre-packages = ["~/.config/mise/tasks/ssh-key", "mise install mas"]
 
 [bootstrap.brew]
 # Claim the apps already installed on this machine instead of replacing their
@@ -135,6 +137,9 @@ adopt = true
 "~/.config/lsd" = { source = "dotfiles/lsd" }
 "~/.config/linearmouse" = { source = "dotfiles/linearmouse" }
 "~/.config/finicky.ts" = { source = "dotfiles/finicky.ts" }
+# The file only, not ~/.ssh: keys and known_hosts are per machine and stay out
+# of this repo. tasks/ssh-key creates ~/.ssh as 0700 before this phase runs.
+"~/.ssh/config" = { source = "dotfiles/ssh/config" }
 
 ##
 ## macOS defaults

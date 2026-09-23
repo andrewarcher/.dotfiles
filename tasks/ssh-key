@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+#MISE description="Create the SSH key if missing, and store its passphrase in the keychain"
+set -uo pipefail
+
+# The key git signs commits with (dotfiles/git/config names it) and that
+# dotfiles/ssh/config offers to every host.
+#
+# Run from the pre-packages hook rather than the `bootstrap` task, because it
+# may prompt: pre-packages is the first phase with anything to run, so any
+# prompt comes up within seconds of starting bootstrap, not after every package
+# and tool has installed and the person at the keyboard has walked away.
+#
+# The hook runs this file directly rather than through `mise run`, which may
+# first install missing [tools] -- the very wait this placement avoids.
+#
+# Never fails: a hook that exits non-zero stops the whole bootstrap, and a
+# missing or unloaded key should not cost every later phase.
+KEY=~/.ssh/id_ed25519
+
+[[ "$(uname -s)" == "Darwin" ]] || { echo "not macOS, skipping SSH key" >&2; exit 0; }
+
+# ssh-keygen would create this itself, but not when generation is declined, and
+# the dotfiles phase symlinks ~/.ssh/config into it either way. 0700 is what
+# ssh-keygen would have used.
+mkdir -p -m 700 ~/.ssh
+
+# Private and per-machine ssh settings, included by dotfiles/ssh/config. Created
+# empty and 0600 so there is an obvious place to put them; never overwritten, so
+# re-running bootstrap cannot lose them. Before the terminal check, since it
+# needs no answers.
+[[ -e ~/.ssh/config.local ]] || install -m 600 /dev/null ~/.ssh/config.local
+
+# Prompts use /dev/tty rather than stdin, which mise does not reliably connect
+# to hooks. With no terminal at all there is nobody to answer, so skip.
+if ! (: </dev/tty) 2>/dev/null; then
+  [[ -e "$KEY" ]] || echo "no terminal, not generating $KEY; run \`mise run ssh-key\` later" >&2
+  exit 0
+fi
+
+# Asks before generating, so that declining leaves room to restore an existing
+# key to this path instead. An existing key is never regenerated. ssh-keygen
+# asks for the passphrase itself, so it never passes through this script.
+if [[ ! -e "$KEY" ]]; then
+  printf 'No SSH key at %s. Generate one? [y/N] ' "$KEY" >/dev/tty
+  IFS= read -r answer </dev/tty || answer=
+  if [[ "$answer" == [yY]* ]]; then
+    ssh-keygen -t ed25519 -f "$KEY" </dev/tty || echo "warning: ssh-keygen failed" >&2
+    echo "Add $KEY.pub to GitHub as both an authentication and a signing key." >&2
+  fi
+fi
+
+# Stores the passphrase in the login keychain, which is what `UseKeychain yes`
+# in dotfiles/ssh/config reads it back from. Prompts once more on the first run
+# -- including straight after generating -- and never again: on re-runs the
+# passphrase is already in the keychain and this just reloads the agent. Apple's
+# own ssh-add, since the flag does not exist upstream.
+if [[ -e "$KEY" ]]; then
+  /usr/bin/ssh-add --apple-use-keychain "$KEY" || echo "warning: $KEY was not added to the keychain" >&2
+fi
+exit 0

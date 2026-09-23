@@ -1,0 +1,17 @@
+# Symlinked to ~/.ssh/config by `[dotfiles]` in config.toml, so everything here
+# is committed and pushed. Hosts, usernames, jump hosts and anything else
+# machine-specific or private go in ~/.ssh/config.local instead, which is not in
+# this repo; tasks/ssh-key creates it empty.
+#
+# Included first because ssh keeps the first value it finds for each option, so
+# the local file can override anything below. A missing file is ignored.
+Include ~/.ssh/config.local
+
+Host *
+  # Load the key into ssh-agent on first use, so later connections and git
+  # commit signing find it there.
+  AddKeysToAgent yes
+  # Apple's ssh only: read the key's passphrase from the login keychain, where
+  # tasks/ssh-key stores it, instead of prompting.
+  UseKeychain yes
+  IdentityFile ~/.ssh/id_ed25519

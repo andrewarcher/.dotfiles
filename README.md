@@ -89,6 +89,7 @@ transaction: if a phase fails, earlier changes stay. Fix and re-run.
 | `dotfiles/lsd/`           | `~/.config/lsd`           | `ls` replacement — `.zshrc` aliases `ls` to it |
 | `dotfiles/linearmouse/`   | `~/.config/linearmouse`   | per-device mouse/trackpad tuning; its menu bar options are `[bootstrap.macos.defaults]` |
 | `dotfiles/finicky.ts`     | `~/.config/finicky.ts`    | browser/URL routing                  |
+| `dotfiles/ssh/config`     | `~/.ssh/config`           | agent + keychain for `~/.ssh/id_ed25519`; the file only, keys stay per machine |
 
 These are `[dotfiles]` entries in symlink mode, so editing the live path edits
 the file here. `mise dot status` shows what is linked, `mise dot diff` what has
@@ -181,6 +182,23 @@ config, not a global one.
 **not** in this repo. The `bootstrap` task creates it empty and `0600` if it is
 missing, and never touches it otherwise, so re-running bootstrap cannot lose
 keys.
+
+`~/.ssh/id_ed25519` is the key git signs commits with. `tasks/ssh-key` runs
+from the `pre-packages` hook, the first thing bootstrap does, so any prompt
+appears straight away rather than after everything has installed. If the key is
+missing it asks whether to generate one, and `ssh-keygen` then asks for the
+passphrase itself. Answer no and restore an existing key to that path to keep it
+instead; an existing key is never regenerated. It then runs `ssh-add
+--apple-use-keychain`, which prompts once more on the first run and stores the
+passphrase in the login keychain for `UseKeychain yes` in `dotfiles/ssh/config`.
+With no terminal it skips all of this; `mise run ssh-key` does it later. The
+public key still has to be added to GitHub by hand, as both an authentication
+and a signing key.
+
+`~/.ssh/config` is committed, so private or machine-specific ssh settings (hosts,
+usernames, jump hosts) go in `~/.ssh/config.local` instead. `dotfiles/ssh/config`
+includes it first, so it can override anything there, and `tasks/ssh-key`
+creates it empty and `0600` and never touches it afterwards.
 
 ## Editor
 
