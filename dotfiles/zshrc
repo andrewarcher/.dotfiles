@@ -199,3 +199,6 @@ show_colors () {
         print -Pn "%K{$i}  %k%F{$i}${(l:3::0:)i}%f " ${${(M)$((i%6)):#3}:+$'\n'};
      done
 }
+
+# Added by Devin
+export PATH="$HOME/.codeium/windsurf/bin:$PATH"
