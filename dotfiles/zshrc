@@ -42,6 +42,13 @@ fi
 ## go
 (( $+commands[go] )) && export GOPATH="$HOME/code/go"
 
+## windsurf / devin
+# Only its `devin-desktop` launcher lives here, so it goes last rather than ahead
+# of every mise tool, as the installer's own appended `export PATH=` line put it.
+# If the installer appends that line again, the precmd dedupe below removes the
+# duplicate; delete the appended line when `mise dot diff` shows it.
+[[ -d ~/.codeium/windsurf/bin ]] && path+=(~/.codeium/windsurf/bin)
+
 # re-assign as an array to force -U dedupe over anything that prepended
 # PATH as a scalar above (e.g. `brew shellenv`)
 path=($path)
@@ -199,6 +206,3 @@ show_colors () {
         print -Pn "%K{$i}  %k%F{$i}${(l:3::0:)i}%f " ${${(M)$((i%6)):#3}:+$'\n'};
      done
 }
-
-# Added by Devin
-export PATH="$HOME/.codeium/windsurf/bin:$PATH"
