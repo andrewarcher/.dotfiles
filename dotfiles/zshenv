@@ -1,0 +1,17 @@
+# Read by every zsh, first -- before /etc/zprofile and ~/.zprofile.
+#
+# ~/.zprofile runs `mise activate zsh --shims` (written by
+# `[bootstrap.mise_shell_activate]` in config.toml), and mise lives in
+# ~/.local/bin, which nothing else has put on PATH by then. Without this, login
+# shells print "command not found: mise" and GUI apps and nvim's language
+# servers get no shims. It used to work only by accident, through a Homebrew
+# mise on the system PATH.
+#
+# /etc/zprofile's path_helper moves the system directories ahead of this, which
+# is fine: mise is still found, and .zshrc re-prepends ~/.local/bin for
+# interactive shells. Keep this file to PATH only -- it runs for every script too.
+# Exported explicitly: path_helper rebuilds PATH from its own environment, so an
+# unexported PATH -- as in a shell started with an empty environment -- would
+# lose this entry.
+path=("$HOME/.local/bin" $path)
+export PATH

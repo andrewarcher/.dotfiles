@@ -128,6 +128,7 @@ adopt = true
 # Symlink mode, so editing the live path edits the file in this repo. Sources
 # are relative to this config file, i.e. to ~/.config/mise.
 [dotfiles]
+"~/.zshenv" = { source = "dotfiles/zshenv" }
 "~/.zshrc" = { source = "dotfiles/zshrc" }
 "~/.inputrc" = { source = "dotfiles/inputrc" }
 "~/.config/zsh" = { source = "dotfiles/zsh" }

@@ -80,6 +80,7 @@ transaction: if a phase fails, earlier changes stay. Fix and re-run.
 | Path                      | Links to                  | Notes                                |
 | ------------------------- | ------------------------- | ------------------------------------ |
 | `config.toml`             | —                         | global mise config; all of the below |
+| `dotfiles/zshenv`         | `~/.zshenv`               | puts `~/.local/bin` on PATH before `~/.zprofile` runs mise |
 | `dotfiles/zshrc`          | `~/.zshrc`                | PATH, prompt, history, integrations  |
 | `dotfiles/inputrc`        | `~/.inputrc`              | readline arrow-key history search    |
 | `dotfiles/zsh/`           | `~/.config/zsh`           | holds the fzf-tab checkout           |
