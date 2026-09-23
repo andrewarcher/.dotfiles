@@ -439,6 +439,16 @@ run = """
 # create the parent itself.
 mkdir -p ~/.cache/less
 
+# Lets the Bitwarden extension in Zen reach the desktop app for biometric
+# unlock. Bitwarden writes com.8bit.bitwarden.json here itself -- Zen reads
+# Firefox's manifest location, not one under its own zen/ directory -- but only
+# when this directory already exists: it takes Mozilla/ to mean Firefox is
+# installed, and nothing else creates it. Created whole because the App Store
+# sandbox lets Bitwarden write inside NativeMessagingHosts/, not create it.
+# Bitwarden only checks at launch, so on a new machine it has to be restarted
+# once after bootstrap.
+mkdir -p ~/"Library/Application Support/Mozilla/NativeMessagingHosts"
+
 # Per-machine secrets, deliberately not in this repo -- dotfiles/zshrc sources
 # it when present. Created empty and 0600 so there is an obvious place to put
 # keys; never overwritten, so re-running bootstrap cannot lose them.
